@@ -18,13 +18,16 @@ struct DetailedSiriStop: Decodable {
         var recordedattime: Int
         var monitored: Bool
         
+        var lineref: String
+        var vehicleref: String?
+        
         var longitude: Double?
         var latitude: Double?
         
         var originaimedarrivaltime: Int?
         var originaimeddeparturetime: Int?
         
-        var destinationdisplay: String?
+        var destinationdisplay: String
         var destinationdisplay_sv: String?
         var destinationdisplay_en: String?
         
@@ -40,6 +43,7 @@ struct DetailedSiriStop: Decodable {
         var incongestion: Bool?
         
         var __tripref: String
+        var __routeref: String
     }
     
     var status: String

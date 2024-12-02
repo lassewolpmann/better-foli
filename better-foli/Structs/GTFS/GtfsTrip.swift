@@ -9,6 +9,7 @@ import Foundation
 
 struct GtfsTrip: Decodable {
     // https://data.foli.fi/doc/gtfs/v0/trips-en
-    var route_id: String
+    var trip_id: String
     var trip_headsign: String
+    var shape_id: String
 }

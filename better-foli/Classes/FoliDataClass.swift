@@ -14,9 +14,7 @@ import MapKit
     var allStops: [String: GtfsStop] = [:]
     
     var cameraPosition: MKCoordinateRegion?
-    var cameraDistance: Double?
     
-    // MARK: Load stops
     func getGtfsStops() async throws -> Void {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return }
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -24,7 +22,7 @@ import MapKit
     }
     
     var filteredStops: [String: GtfsStop] {
-        if let cameraPosition, let cameraDistance {
+        if let cameraPosition {
             return allStops.filter { stop in
                 let stopData = stop.value
                 
@@ -38,7 +36,7 @@ import MapKit
                 let lonMin = lon - cameraPosition.span.longitudeDelta / 2
                 let lonMax = lon + cameraPosition.span.longitudeDelta / 2
                 
-                if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax && cameraDistance < 4000) {
+                if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax) {
                     return true
                 } else {
                     return false
@@ -57,21 +55,53 @@ import MapKit
         return stopData
     }
     
-    func loadTrip(tripID: String) async throws -> GtfsTrip? {
-        guard let url = URL(string: "\(baseURL)/gtfs/trips/trip/\(tripID)") else { return nil }
+    func getSiriVehicleData() async throws -> SiriVehicleMonitoring? {
+        guard let url = URL(string: "\(baseURL)/siri/vm") else { return nil }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return try JSONDecoder().decode(SiriVehicleMonitoring.self, from: data)
+    }
+    
+    func getVehiclePosition(vehicleRef: String) async throws -> SiriVehicleMonitoring.Result.Vehicle? {
+        if let allVehicles = try await getSiriVehicleData() {
+            return allVehicles.result.vehicles.filter { vehicle in
+                return vehicle.key == vehicleRef
+            }.first?.value
+        } else {
+            return nil
+        }
+    }
+    
+    func getGtfsTripsForRoute(routeID: String, tripID: String) async throws -> GtfsTrip? {
+        guard let url = URL(string: "\(baseURL)/gtfs/trips/route/\(routeID)") else { return nil }
         let (data, _) = try await URLSession.shared.data(from: url)
         let trips = try JSONDecoder().decode([GtfsTrip].self, from: data)
         
-        return trips.first
+        let filteredTrips = trips.filter { trip in
+            return trip.trip_id == tripID
+        }
+                        
+        return filteredTrips.first
     }
     
-    func loadRoute(routeID: String) async throws -> GtfsRoute? {
-        guard let url = URL(string: "\(baseURL)/gtfs/routes") else { return nil }
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let routes = try JSONDecoder().decode([GtfsRoute].self, from: data)
-        
-        return routes.filter { route in
-            route.route_id == routeID
-        }.first
+    func getTripShape(routeID: String, tripID: String) async throws -> [GtfsShape]? {
+        if let trip = try await getGtfsTripsForRoute(routeID: routeID, tripID: tripID) {
+            guard let url = URL(string: "\(baseURL)/gtfs/shapes/\(trip.shape_id)") else { return nil }
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return try JSONDecoder().decode([GtfsShape].self, from: data)
+        } else {
+            return []
+        }
+    }
+    
+    func getTripCoordinates(routeID: String, tripID: String) async throws -> [CLLocationCoordinate2D] {
+        if let shapes = try await getTripShape(routeID: routeID, tripID: tripID) {
+            let coordinates = shapes.map { shape in
+                return CLLocationCoordinate2D(latitude: shape.lat, longitude: shape.lon)
+            }
+            
+            return coordinates
+        } else {
+            return []
+        }
     }
 }
