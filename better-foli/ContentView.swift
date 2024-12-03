@@ -30,23 +30,20 @@ struct ContentView: View {
                     )
                 
                 Map(initialPosition: .userLocation(fallback: .region(fallbackLocation)), bounds: MapCameraBounds(maximumDistance: 5000)) {
+                    UserAnnotation()
+                    
                     ForEach(foliData.filteredStops.sorted { $0.key < $1.key} , id: \.key) { stopDict in
                         let stop = stopDict.value
                         let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stop.stop_lat), longitude: CLLocationDegrees(stop.stop_lon))
                         
-                        Annotation(stop.stop_name, coordinate: stopCoords) {
+                        Annotation(coordinate: stopCoords) {
                             NavigationLink {
                                 StopView(foliData: foliData, stop: stop)
                             } label: {
-                                ZStack {
-                                    Circle()
-                                        .fill(.orange)
-                                    
-                                    Image(systemName: "parkingsign.square")
-                                        .foregroundStyle(.white)
-                                        .padding(5)
-                                }
+                                BusStopLabelView()
                             }
+                        } label: {
+                            Text(stop.stop_name)
                         }
                     }
                 }
@@ -61,7 +58,6 @@ struct ContentView: View {
                 .onMapCameraChange(frequency: .continuous, { context in
                     foliData.cameraPosition = context.region
                 })
-                .mapStyle(.standard(pointsOfInterest: .excludingAll))
             }
             .padding(10)
             .navigationTitle("Föli")

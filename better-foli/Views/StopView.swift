@@ -41,17 +41,7 @@ struct StopView: View {
 
 #Preview {
     let currentTimestamp = Int(Date.now.timeIntervalSince1970)
-    let upcomingBus = DetailedSiriStop.Result(
-        recordedattime: currentTimestamp,
-        monitored: true,
-        lineref: "51",
-        destinationdisplay: "Oriniemi Häppilän kautta",
-        aimedarrivaltime: currentTimestamp + 60,
-        expectedarrivaltime: currentTimestamp + 120,
-        aimeddeparturetime: currentTimestamp + 180,
-        expecteddeparturetime: currentTimestamp + 240,
-        __tripref: "00015150__1050051106", __routeref: ""
-    )
+    let upcomingBus = DetailedSiriStop.Result()
     
-    StopView(foliData: FoliDataClass(), stop: GtfsStop(), detailedStop: DetailedSiriStop(status: "OK", servertime: currentTimestamp, result: [upcomingBus]))
+    StopView(foliData: FoliDataClass(), stop: GtfsStop(), detailedStop: DetailedSiriStop(status: "OK", servertime: currentTimestamp, result: [upcomingBus, upcomingBus]))
 }

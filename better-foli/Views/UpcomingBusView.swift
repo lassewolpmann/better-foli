@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct AlignedLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -29,7 +30,11 @@ struct UpcomingBusView: View {
 
             if (upcomingBus.monitored) {
                 NavigationLink {
-                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus)
+                    let center = CLLocationCoordinate2D(latitude: upcomingBus.latitude ?? 0.0, longitude: upcomingBus.longitude ?? 0.0)
+                    let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                    let mapCameraPosition = MapCameraPosition.region(MKCoordinateRegion(center: center, span: span))
+                    
+                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, mapCameraPosition: mapCameraPosition)
                 } label: {
                     Label {
                         Text(upcomingBus.destinationdisplay)
@@ -88,17 +93,7 @@ struct UpcomingBusView: View {
 
 #Preview {
     let currentTimestamp = Int(Date.now.timeIntervalSince1970)
-    let upcomingBus = DetailedSiriStop.Result(
-        recordedattime: currentTimestamp,
-        monitored: true,
-        lineref: "51",
-        destinationdisplay: "Oriniemi Häppilän kautta",
-        aimedarrivaltime: currentTimestamp + 60,
-        expectedarrivaltime: currentTimestamp + 120,
-        aimeddeparturetime: currentTimestamp + 180,
-        expecteddeparturetime: currentTimestamp + 240,
-        __tripref: "00015150__1050051106", __routeref: ""
-    )
+    let upcomingBus = DetailedSiriStop.Result()
     
     NavigationStack {
         UpcomingBusView(foliData: FoliDataClass(), upcomingBus: upcomingBus)

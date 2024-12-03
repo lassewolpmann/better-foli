@@ -16,7 +16,9 @@ struct LiveBusView: View {
     
     @State var liveVehicle: SiriVehicleMonitoring.Result.Vehicle?
     @State var tripCoords: [CLLocationCoordinate2D]?
-    @State var mapCameraPosition: MapCameraPosition = .automatic
+    @State var mapCameraPosition: MapCameraPosition
+    
+    @State var showTimetable: Bool = false
     
     var body: some View {
         if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude, let coords = tripCoords {
@@ -37,50 +39,114 @@ struct LiveBusView: View {
                                 let stop = stop.value
                                 let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stop.stop_lat), longitude: CLLocationDegrees(stop.stop_lon))
                                 
-                                Annotation(stop.stop_name, coordinate: stopCoords) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(.orange)
-                                        
-                                        Image(systemName: "parkingsign.square")
-                                            .foregroundStyle(.white)
-                                            .padding(5)
-                                    }
+                                Annotation(coordinate: stopCoords) {
+                                    BusStopLabelView()
+                                } label: {
+                                    Text(stop.stop_name)
                                 }
+
                             }
                         }
                     }
                     
-                    
                     Annotation(coordinate: busCoordinates) {
-                        ZStack {
-                            Circle()
-                                .fill(.orange)
-                            
-                            Image(systemName: "bus")
-                                .foregroundStyle(.white)
-                                .padding(5)
-                        }
+                        Image(systemName: "bus")
+                            .foregroundStyle(.orange)
+                            .padding(5)
+                            .background(
+                                Circle()
+                                    .fill(.white)
+                                    .stroke(.orange, lineWidth: 2)
+                            )
                     } label: {
                         Text(upcomingBus.lineref)
-                            .bold()
                     }
                 }
                 
-                Button {
-                    let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                VStack(alignment: .trailing) {
+                    Button {
+                        let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                        
+                        mapCameraPosition = .region(MKCoordinateRegion(center: busCoordinates, span: span))
+                    } label: {
+                        Label {
+                            Text("Find Bus")
+                        } icon: {
+                            Image(systemName: "location.circle")
+                        }
+                    }
                     
-                    mapCameraPosition = .region(MKCoordinateRegion(center: busCoordinates, span: span))
-                } label: {
-                    Label {
-                        Text("Find Bus")
-                    } icon: {
-                        Image(systemName: "location.circle")
+                    Button {
+                        showTimetable.toggle()
+                    } label: {
+                        Label {
+                            Text("Timetable")
+                        } icon: {
+                            Image(systemName: "calendar")
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .padding(.horizontal, 10)
             }
+            .sheet(isPresented: $showTimetable, content: {
+                if let onwardsCalls = liveVehicle?.onwardcalls {
+                    NavigationStack {
+                        ScrollView {
+                            VStack(spacing: 10) {
+                                ForEach(onwardsCalls, id: \.stoppointref) { call in
+                                    HStack(alignment: .center) {
+                                        Text(call.stoppointref)
+                                            .bold()
+                                            .frame(width: 75)
+                                        Text(call.stoppointname)
+                                        
+                                        Spacer()
+                                                                       
+                                        VStack {
+                                            let aimedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.aimedarrivaltime))
+                                            let expectedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.expectedarrivaltime))
+                                            let arrivalDelay = Int(floor(expectedArrivalDate.timeIntervalSince(aimedArrivalDate) / 60))
+                                            
+                                            Label {
+                                                HStack(alignment: .top, spacing: 2) {
+                                                    Text(aimedArrivalDate, style: .time)
+                                                    Text("\(arrivalDelay >= 0 ? "+" : "")\(arrivalDelay)")
+                                                        .foregroundStyle(arrivalDelay > 0 ? .red : .primary)
+                                                        .font(.footnote)
+                                                }
+                                            } icon: {
+                                                Image(systemName: "arrow.right")
+                                            }
+                                            .labelStyle(AlignedLabel())
+                                            
+                                            let aimedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.aimeddeparturetime))
+                                            let expectedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.expecteddeparturetime))
+                                            let departureDelay = Int(floor(expectedDepartureDate.timeIntervalSince(aimedDepartureDate) / 60))
+                                            
+                                            Label {
+                                                HStack(alignment: .top, spacing: 2) {
+                                                    Text(aimedDepartureDate, style: .time)
+                                                    Text("\(departureDelay >= 0 ? "+" : "")\(departureDelay)")
+                                                        .foregroundStyle(departureDelay > 0 ? .red : .primary)
+                                                        .font(.footnote)
+                                                }
+                                            } icon: {
+                                                Image(systemName: "arrow.left")
+                                            }
+                                            .labelStyle(AlignedLabel())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .navigationTitle("Upcoming Stops")
+                    }
+                    .padding(10)
+                    .presentationBackground(.regularMaterial)
+                    .presentationDetents([.medium, .large])
+                }
+            })
             .onReceive(timer) { _ in
                 print("Updating vehicle location...")
                 
@@ -121,23 +187,9 @@ struct LiveBusView: View {
 }
 
 #Preview {
-    let currentTimestamp = Int(Date.now.timeIntervalSince1970)
-    let upcomingBus = DetailedSiriStop.Result(
-        recordedattime: currentTimestamp,
-        monitored: true,
-        lineref: "51",
-        vehicleref: "550003",
-        longitude: 22.21967,
-        latitude: 60.43503,
-        destinationdisplay: "Oriniemi Häppilän kautta",
-        aimedarrivaltime: currentTimestamp + 60,
-        expectedarrivaltime: currentTimestamp + 120,
-        aimeddeparturetime: currentTimestamp + 180,
-        expecteddeparturetime: currentTimestamp + 240,
-        __tripref: "00015150__1050051106", __routeref: ""
-    )
+    let upcomingBus = DetailedSiriStop.Result()
     
-    let center = CLLocationCoordinate2D(latitude: 60.43503, longitude: 22.21967)
+    let center = CLLocationCoordinate2D(latitude: upcomingBus.latitude ?? 0.0, longitude: upcomingBus.longitude ?? 0.0)
     let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     let mapCameraPosition = MapCameraPosition.region(MKCoordinateRegion(center: center, span: span))
     

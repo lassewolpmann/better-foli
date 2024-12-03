@@ -9,14 +9,14 @@ import SwiftUI
 
 struct BusStopLabelView: View {
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(.orange)
-            
-            Image(systemName: "parkingsign.square")
-                .foregroundStyle(.white)
-                .padding(5)
-        }
+        Image(systemName: "parkingsign")
+            .foregroundStyle(.orange)
+            .padding(5)
+            .background(
+                Circle()
+                    .fill(.white)
+                    .stroke(.orange, lineWidth: 2)
+            )
     }
 }
 

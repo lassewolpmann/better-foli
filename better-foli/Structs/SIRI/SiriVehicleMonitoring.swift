@@ -19,10 +19,6 @@ struct SiriVehicleMonitoring: Decodable {
                 var expecteddeparturetime: Int
             }
             
-            struct PreviousCalls: Decodable {
-                var stoppointname: String
-            }
-            
             var percentage: Double?
             var lineref: String?
             var originname: String?
@@ -35,7 +31,6 @@ struct SiriVehicleMonitoring: Decodable {
             var next_aimeddeparturetime: Int?
             var next_expecteddeparturetime: Int?
             var onwardcalls: [OnwardCalls]?
-            var previouscalls: [PreviousCalls]?
             var __tripref: String?
             var __routeref: String?
         }
