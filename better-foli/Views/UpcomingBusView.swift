@@ -52,39 +52,11 @@ struct UpcomingBusView: View {
             
             VStack {
                 if let aimedArrival = upcomingBus.aimedarrivaltime, let expectedArrival = upcomingBus.expectedarrivaltime {
-                    let aimedDate = Date(timeIntervalSince1970: TimeInterval(aimedArrival))
-                    let expectedDate = Date(timeIntervalSince1970: TimeInterval(expectedArrival))
-                    let delay = Int(floor(expectedDate.timeIntervalSince(aimedDate) / 60))
-                    
-                    Label {
-                        HStack(alignment: .top, spacing: 2) {
-                            Text(aimedDate, style: .time)
-                            Text("\(delay >= 0 ? "+" : "")\(delay)")
-                                .foregroundStyle(delay > 0 ? .red : .primary)
-                                .font(.footnote)
-                        }
-                    } icon: {
-                        Image(systemName: "arrow.right")
-                    }
-                    .labelStyle(AlignedLabel())
+                    ArrivalTimeView(aimedArrival: aimedArrival, expectedArrival: expectedArrival)
                 }
                 
                 if let aimedDeparture = upcomingBus.aimeddeparturetime, let expectedDeparture = upcomingBus.expecteddeparturetime {
-                    let aimedDate = Date(timeIntervalSince1970: TimeInterval(aimedDeparture))
-                    let expectedDate = Date(timeIntervalSince1970: TimeInterval(expectedDeparture))
-                    let delay = Int(floor(expectedDate.timeIntervalSince(aimedDate) / 60))
-                    
-                    Label {
-                        HStack(alignment: .top, spacing: 2) {
-                            Text(aimedDate, style: .time)
-                            Text("\(delay >= 0 ? "+" : "")\(delay)")
-                                .foregroundStyle(delay > 0 ? .red : .primary)
-                                .font(.footnote)
-                        }
-                    } icon: {
-                        Image(systemName: "arrow.left")
-                    }
-                    .labelStyle(AlignedLabel())
+                    DepartureTimeView(aimedDeparture: aimedDeparture, expectedDeparture: expectedDeparture)
                 }
             }
         }

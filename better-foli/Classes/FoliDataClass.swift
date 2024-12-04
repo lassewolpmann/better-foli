@@ -11,10 +11,9 @@ import MapKit
 @Observable class FoliDataClass {
     let baseURL = "https://data.foli.fi"
     
-    var allStops: [String: GtfsStop] = [:]
-    var favouriteStops: [GtfsStop] = []
-    
+    var allStops: [String: GtfsStop] = [:]    
     var cameraPosition: MKCoordinateRegion?
+    var cameraHeight: Double?
     
     func getGtfsStops() async throws -> Void {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return }
@@ -23,7 +22,7 @@ import MapKit
     }
     
     var filteredStops: [String: GtfsStop] {
-        if let cameraPosition {
+        if let cameraPosition, let cameraHeight {
             return allStops.filter { stop in
                 let stopData = stop.value
                 
@@ -37,7 +36,7 @@ import MapKit
                 let lonMin = lon - cameraPosition.span.longitudeDelta / 2
                 let lonMax = lon + cameraPosition.span.longitudeDelta / 2
                 
-                if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax) {
+                if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax && cameraHeight <= 3000) {
                     return true
                 } else {
                     return false

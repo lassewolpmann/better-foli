@@ -6,30 +6,48 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct FavouriteStopsView: View {
+    @Query var favouriteStops: [FavouriteStop]
+    @Environment(\.modelContext) private var context
+    
     let foliData: FoliDataClass
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack {
-                    ForEach(foliData.favouriteStops, id: \.stop_code) { favourite in
-                        NavigationLink {
-                            StopView(foliData: foliData, stop: favourite)
-                        } label: {
-                            HStack {
-                                Label {
-                                    Text(favourite.stop_code)
-                                } icon: {
-                                    BusStopLabelView()
+                    ForEach(favouriteStops, id: \.stopCode) { favourite in
+                        HStack(alignment: .center) {
+                            Label {
+                                Text(favourite.stopCode)
+                            } icon: {
+                                BusStopLabelView()
+                            }
+                            
+                            Spacer()
+                            
+                            NavigationLink {
+                                // StopView(foliData: foliData, stop: favourite)
+                            } label: {
+                                Text(favourite.stopName)
+                            }
+                            
+                            Button {
+                                context.delete(favourite)
+                                
+                                do {
+                                    try context.save()
+                                } catch {
+                                    print(error)
                                 }
-                                
-                                Spacer()
-                                
-                                Text(favourite.stop_name)
+                            } label: {
+                                Image(systemName: "trash")
+                                    .foregroundStyle(.red)
                             }
                         }
+                        
                     }
                 }
             }
@@ -40,7 +58,5 @@ struct FavouriteStopsView: View {
 }
 
 #Preview {
-    let foliData = FoliDataClass()
-    foliData.favouriteStops = [GtfsStop(), GtfsStop(), GtfsStop()]
-    return FavouriteStopsView(foliData: foliData)
+    FavouriteStopsView(foliData: FoliDataClass())
 }

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 @main
 struct better_foliApp: App {
@@ -17,6 +18,9 @@ struct better_foliApp: App {
         
         WindowGroup {
             ContentView(mapCameraPosition: .userLocation(fallback: .region(fallbackLocation)))
+                .modelContainer(for: [
+                    FavouriteStop.self
+                ])
         }
     }
 }

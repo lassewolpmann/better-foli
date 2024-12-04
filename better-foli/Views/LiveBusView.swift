@@ -110,37 +110,8 @@ struct LiveBusView: View {
                                     Spacer()
                                                                    
                                     VStack {
-                                        let aimedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.aimedarrivaltime))
-                                        let expectedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.expectedarrivaltime))
-                                        let arrivalDelay = Int(floor(expectedArrivalDate.timeIntervalSince(aimedArrivalDate) / 60))
-                                        
-                                        Label {
-                                            HStack(alignment: .top, spacing: 2) {
-                                                Text(aimedArrivalDate, style: .time)
-                                                Text("\(arrivalDelay >= 0 ? "+" : "")\(arrivalDelay)")
-                                                    .foregroundStyle(arrivalDelay > 0 ? .red : .primary)
-                                                    .font(.footnote)
-                                            }
-                                        } icon: {
-                                            Image(systemName: "arrow.right")
-                                        }
-                                        .labelStyle(AlignedLabel())
-                                        
-                                        let aimedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.aimeddeparturetime))
-                                        let expectedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.expecteddeparturetime))
-                                        let departureDelay = Int(floor(expectedDepartureDate.timeIntervalSince(aimedDepartureDate) / 60))
-                                        
-                                        Label {
-                                            HStack(alignment: .top, spacing: 2) {
-                                                Text(aimedDepartureDate, style: .time)
-                                                Text("\(departureDelay >= 0 ? "+" : "")\(departureDelay)")
-                                                    .foregroundStyle(departureDelay > 0 ? .red : .primary)
-                                                    .font(.footnote)
-                                            }
-                                        } icon: {
-                                            Image(systemName: "arrow.left")
-                                        }
-                                        .labelStyle(AlignedLabel())
+                                        ArrivalTimeView(aimedArrival: call.aimedarrivaltime, expectedArrival: call.expectedarrivaltime)
+                                        DepartureTimeView(aimedDeparture: call.aimeddeparturetime, expectedDeparture: call.expecteddeparturetime)
                                     }
                                 }
                             }

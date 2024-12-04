@@ -7,8 +7,9 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
-struct ContentView: View {
+struct ContentView: View {    
     @State private var foliData = FoliDataClass()
     @State private var locationManager = LocationManagerClass()
     @State private var searchFilter: String = ""
@@ -16,8 +17,6 @@ struct ContentView: View {
     @State var mapCameraPosition: MapCameraPosition
         
     var body: some View {
-        
-        
         NavigationStack {
             VStack(alignment: .leading, spacing: 10) {
                 TextField("\(Image(systemName: "bus")) Find Stop", text: $searchFilter)
@@ -28,7 +27,7 @@ struct ContentView: View {
                             .fill(.thinMaterial)
                     )
                 
-                Map(position: $mapCameraPosition, bounds: MapCameraBounds(maximumDistance: 5000)) {
+                Map(position: $mapCameraPosition) {
                     UserAnnotation()
                     
                     ForEach(foliData.filteredStops.sorted { $0.key < $1.key} , id: \.key) { stopDict in
@@ -56,6 +55,7 @@ struct ContentView: View {
                 }
                 .onMapCameraChange(frequency: .continuous, { context in
                     foliData.cameraPosition = context.region
+                    foliData.cameraHeight = context.camera.distance
                 })
             }
             .padding(10)

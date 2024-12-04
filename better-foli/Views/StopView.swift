@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct StopView: View {
     let foliData: FoliDataClass
     let stop: GtfsStop
     
     @State var detailedStop: DetailedSiriStop?
+    
+    @Environment(\.modelContext) private var context
     
     var body: some View {
         NavigationStack {
@@ -30,18 +33,19 @@ struct StopView: View {
             .navigationTitle("\(stop.stop_name) - \(stop.stop_code)")
             .toolbar {
                 Button {
-                    if (foliData.favouriteStops.contains(stop)) {
-                        foliData.favouriteStops.removeAll { favouriteStop in
-                            favouriteStop == stop
-                        }
-                    } else {
-                        foliData.favouriteStops.append(stop)
+                    let favouriteStop = FavouriteStop(stop: stop)
+                    context.insert(favouriteStop)
+                    
+                    do {
+                        try context.save()
+                    } catch {
+                        print(error)
                     }
                 } label: {
                     Label {
                         Text("Save to Favourites")
                     } icon: {
-                        Image(systemName: foliData.favouriteStops.contains(stop) ? "star.fill" : "star")
+                        Image(systemName: "star")
                     }
                 }
             }
