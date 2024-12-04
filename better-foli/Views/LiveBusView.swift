@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 struct LiveBusView: View {
     let foliData: FoliDataClass
@@ -20,6 +21,8 @@ struct LiveBusView: View {
 
     @State var mapCameraPosition: MapCameraPosition
     
+    @Query var favouriteStops: [FavouriteStop]
+    
     var body: some View {
         if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude, let coords = tripCoords {
             let busCoordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
@@ -31,16 +34,16 @@ struct LiveBusView: View {
                     
                     if let onwardsCalls = liveVehicle?.onwardcalls {
                         ForEach(onwardsCalls, id: \.stoppointref) { call in
-                            let stop = foliData.allStops.filter { stop in
-                                return stop.value.stop_code == call.stoppointref
-                            }.first
+                            let stop = foliData.allStops.first { $0.value.stop_code == call.stoppointref }
                             
                             if let stop {
                                 let stop = stop.value
                                 let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stop.stop_lat), longitude: CLLocationDegrees(stop.stop_lon))
                                 
                                 Annotation(coordinate: stopCoords) {
-                                    BusStopLabelView()
+                                    let isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
+                                    
+                                    BusStopLabelView(isFavourite: isFavourite)
                                 } label: {
                                     Text(stop.stop_name)
                                 }
@@ -97,7 +100,7 @@ struct LiveBusView: View {
                                 Text("Upcoming Stops")
                                     .font(.title)
                             } icon: {
-                                BusStopLabelView()
+                                BusStopLabelView(isFavourite: false)
                             }
                             
                             ForEach(onwardsCalls, id: \.stoppointref) { call in
@@ -122,9 +125,7 @@ struct LiveBusView: View {
                     .presentationBackground(.regularMaterial)
                 }
             })
-            .onReceive(timer) { _ in
-                print("Updating vehicle location...")
-                
+            .onReceive(timer) { _ in                
                 Task {
                     if let vehicleRef = upcomingBus.vehicleref {
                         do {

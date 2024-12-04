@@ -13,7 +13,9 @@ struct StopView: View {
     let stop: GtfsStop
     
     @State var detailedStop: DetailedSiriStop?
+    @State private var isFavourite: Bool = false
     
+    @Query var favouriteStops: [FavouriteStop]
     @Environment(\.modelContext) private var context
     
     var body: some View {
@@ -33,26 +35,50 @@ struct StopView: View {
             .navigationTitle("\(stop.stop_name) - \(stop.stop_code)")
             .toolbar {
                 Button {
-                    let favouriteStop = FavouriteStop(stop: stop)
-                    context.insert(favouriteStop)
-                    
-                    do {
-                        try context.save()
-                    } catch {
-                        print(error)
+                    if (isFavourite) {
+                        deleteFavouriteStop()
+                    } else {
+                        insertFavouriteStop()
                     }
                 } label: {
                     Label {
                         Text("Save to Favourites")
                     } icon: {
-                        Image(systemName: "star")
+                        Image(systemName: isFavourite ? "star.fill" : "star")
                     }
                 }
             }
         }
         .task {
+            isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
+            
             do {
                 detailedStop = try await foliData.getSiriStopData(stopCode: stop.stop_code)
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    private func insertFavouriteStop() {
+        let favouriteStop = FavouriteStop(stop: stop)
+        context.insert(favouriteStop)
+        
+        do {
+            try context.save()
+            isFavourite = true
+        } catch {
+            print(error)
+        }
+    }
+    
+    private func deleteFavouriteStop() {
+        if let stopToDelete = favouriteStops.first(where: { $0.stopCode == stop.stop_code }) {
+            context.delete(stopToDelete)
+            
+            do {
+                try context.save()
+                isFavourite = false
             } catch {
                 print(error)
             }

@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct BusStopLabelView: View {
+    let isFavourite: Bool
+    
     var body: some View {
-        Image(systemName: "parkingsign")
+        Image(systemName: isFavourite ? "star" : "parkingsign")
             .foregroundStyle(.orange)
             .padding(5)
             .background(
@@ -21,5 +23,5 @@ struct BusStopLabelView: View {
 }
 
 #Preview {
-    BusStopLabelView()
+    BusStopLabelView(isFavourite: false)
 }

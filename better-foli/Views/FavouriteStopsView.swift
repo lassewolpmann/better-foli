@@ -16,43 +16,31 @@ struct FavouriteStopsView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack {
-                    ForEach(favouriteStops, id: \.stopCode) { favourite in
-                        HStack(alignment: .center) {
-                            Label {
-                                Text(favourite.stopCode)
-                            } icon: {
-                                BusStopLabelView()
-                            }
+            List(favouriteStops, id: \.stopCode) { favourite in
+                if let gtfsStop = foliData.allStops.first(where: { $0.value.stop_code == favourite.stopCode }) {
+                    let stop = gtfsStop.value
+
+                    NavigationLink {
+                        StopView(foliData: foliData, stop: stop)
+                    } label: {
+                        HStack(alignment: .center, spacing: 15) {
+                            Text(stop.stop_code)
+                                .frame(width: 50)
+                                .padding(.vertical, 2)
+                                .padding(.horizontal, 4)
+                                .foregroundStyle(.orange)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(.clear)
+                                        .stroke(.orange, lineWidth: 2)
+                                )
                             
-                            Spacer()
-                            
-                            NavigationLink {
-                                // StopView(foliData: foliData, stop: favourite)
-                            } label: {
-                                Text(favourite.stopName)
-                            }
-                            
-                            Button {
-                                context.delete(favourite)
-                                
-                                do {
-                                    try context.save()
-                                } catch {
-                                    print(error)
-                                }
-                            } label: {
-                                Image(systemName: "trash")
-                                    .foregroundStyle(.red)
-                            }
+                            Text(stop.stop_name)
                         }
-                        
                     }
                 }
             }
             .navigationTitle("Favourites")
-            .padding(.horizontal, 20)
         }
     }
 }

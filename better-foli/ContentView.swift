@@ -10,11 +10,13 @@ import MapKit
 import SwiftData
 
 struct ContentView: View {    
-    @State private var foliData = FoliDataClass()
-    @State private var locationManager = LocationManagerClass()
-    @State private var searchFilter: String = ""
+    let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     
+    @State private var searchFilter: String = ""
     @State var mapCameraPosition: MapCameraPosition
+    
+    @Query var favouriteStops: [FavouriteStop]
         
     var body: some View {
         NavigationStack {
@@ -38,7 +40,9 @@ struct ContentView: View {
                             NavigationLink {
                                 StopView(foliData: foliData, stop: stop)
                             } label: {
-                                BusStopLabelView()
+                                let isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
+                                
+                                BusStopLabelView(isFavourite: isFavourite)
                             }
                         } label: {
                             Text(stop.stop_name)
@@ -47,10 +51,7 @@ struct ContentView: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .mapControls {
-                    if (locationManager.isAuthorized) {
-                        MapUserLocationButton()
-                    }
-                    
+                    MapUserLocationButton().disabled(!locationManager.isAuthorized)
                     MapCompass()
                 }
                 .onMapCameraChange(frequency: .continuous, { context in
@@ -73,6 +74,7 @@ struct ContentView: View {
             }
         }
         .task {
+            foliData.favouriteStops = favouriteStops
             locationManager.requestAuthorization()
             
             do {
@@ -89,5 +91,5 @@ struct ContentView: View {
     let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     let fallbackLocation = MKCoordinateRegion(center: center, span: span)
     
-    ContentView(mapCameraPosition: .region(fallbackLocation))
+    ContentView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), mapCameraPosition: .region(fallbackLocation))
 }
