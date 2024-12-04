@@ -19,7 +19,7 @@ struct DetailedSiriStop: Decodable {
         var monitored: Bool = true
         
         var lineref: String = "1"
-        var vehicleref: String? = "80038"
+        var vehicleref: String? = "80026"
         
         var longitude: Double? = 22.26712
         var latitude: Double? = 60.44932
@@ -42,7 +42,7 @@ struct DetailedSiriStop: Decodable {
         var delay: Int?
         var incongestion: Bool?
         
-        var __tripref: String = "00010118__1001020100"
+        var __tripref: String = "00010105__1001040100"
         var __routeref: String = "1"
     }
     

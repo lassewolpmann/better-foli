@@ -12,6 +12,7 @@ import MapKit
     let baseURL = "https://data.foli.fi"
     
     var allStops: [String: GtfsStop] = [:]
+    var favouriteStops: [GtfsStop] = []
     
     var cameraPosition: MKCoordinateRegion?
     

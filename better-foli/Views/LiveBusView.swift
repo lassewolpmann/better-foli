@@ -14,11 +14,11 @@ struct LiveBusView: View {
     
     let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
-    @State var liveVehicle: SiriVehicleMonitoring.Result.Vehicle?
-    @State var tripCoords: [CLLocationCoordinate2D]?
+    @State private var liveVehicle: SiriVehicleMonitoring.Result.Vehicle?
+    @State private var tripCoords: [CLLocationCoordinate2D]?
+    @State private var showTimetable: Bool = false
+
     @State var mapCameraPosition: MapCameraPosition
-    
-    @State var showTimetable: Bool = false
     
     var body: some View {
         if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude, let coords = tripCoords {
@@ -91,60 +91,64 @@ struct LiveBusView: View {
             }
             .sheet(isPresented: $showTimetable, content: {
                 if let onwardsCalls = liveVehicle?.onwardcalls {
-                    NavigationStack {
-                        ScrollView {
-                            VStack(spacing: 10) {
-                                ForEach(onwardsCalls, id: \.stoppointref) { call in
-                                    HStack(alignment: .center) {
-                                        Text(call.stoppointref)
-                                            .bold()
-                                            .frame(width: 75)
-                                        Text(call.stoppointname)
+                    ScrollView {
+                        VStack(spacing: 10) {
+                            Label {
+                                Text("Upcoming Stops")
+                                    .font(.title)
+                            } icon: {
+                                BusStopLabelView()
+                            }
+                            
+                            ForEach(onwardsCalls, id: \.stoppointref) { call in
+                                HStack(alignment: .center) {
+                                    Text(call.stoppointref)
+                                        .bold()
+                                        .frame(width: 75)
+                                    Text(call.stoppointname)
+                                    
+                                    Spacer()
+                                                                   
+                                    VStack {
+                                        let aimedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.aimedarrivaltime))
+                                        let expectedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.expectedarrivaltime))
+                                        let arrivalDelay = Int(floor(expectedArrivalDate.timeIntervalSince(aimedArrivalDate) / 60))
                                         
-                                        Spacer()
-                                                                       
-                                        VStack {
-                                            let aimedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.aimedarrivaltime))
-                                            let expectedArrivalDate = Date(timeIntervalSince1970: TimeInterval(call.expectedarrivaltime))
-                                            let arrivalDelay = Int(floor(expectedArrivalDate.timeIntervalSince(aimedArrivalDate) / 60))
-                                            
-                                            Label {
-                                                HStack(alignment: .top, spacing: 2) {
-                                                    Text(aimedArrivalDate, style: .time)
-                                                    Text("\(arrivalDelay >= 0 ? "+" : "")\(arrivalDelay)")
-                                                        .foregroundStyle(arrivalDelay > 0 ? .red : .primary)
-                                                        .font(.footnote)
-                                                }
-                                            } icon: {
-                                                Image(systemName: "arrow.right")
+                                        Label {
+                                            HStack(alignment: .top, spacing: 2) {
+                                                Text(aimedArrivalDate, style: .time)
+                                                Text("\(arrivalDelay >= 0 ? "+" : "")\(arrivalDelay)")
+                                                    .foregroundStyle(arrivalDelay > 0 ? .red : .primary)
+                                                    .font(.footnote)
                                             }
-                                            .labelStyle(AlignedLabel())
-                                            
-                                            let aimedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.aimeddeparturetime))
-                                            let expectedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.expecteddeparturetime))
-                                            let departureDelay = Int(floor(expectedDepartureDate.timeIntervalSince(aimedDepartureDate) / 60))
-                                            
-                                            Label {
-                                                HStack(alignment: .top, spacing: 2) {
-                                                    Text(aimedDepartureDate, style: .time)
-                                                    Text("\(departureDelay >= 0 ? "+" : "")\(departureDelay)")
-                                                        .foregroundStyle(departureDelay > 0 ? .red : .primary)
-                                                        .font(.footnote)
-                                                }
-                                            } icon: {
-                                                Image(systemName: "arrow.left")
-                                            }
-                                            .labelStyle(AlignedLabel())
+                                        } icon: {
+                                            Image(systemName: "arrow.right")
                                         }
+                                        .labelStyle(AlignedLabel())
+                                        
+                                        let aimedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.aimeddeparturetime))
+                                        let expectedDepartureDate = Date(timeIntervalSince1970: TimeInterval(call.expecteddeparturetime))
+                                        let departureDelay = Int(floor(expectedDepartureDate.timeIntervalSince(aimedDepartureDate) / 60))
+                                        
+                                        Label {
+                                            HStack(alignment: .top, spacing: 2) {
+                                                Text(aimedDepartureDate, style: .time)
+                                                Text("\(departureDelay >= 0 ? "+" : "")\(departureDelay)")
+                                                    .foregroundStyle(departureDelay > 0 ? .red : .primary)
+                                                    .font(.footnote)
+                                            }
+                                        } icon: {
+                                            Image(systemName: "arrow.left")
+                                        }
+                                        .labelStyle(AlignedLabel())
                                     }
                                 }
                             }
                         }
-                        .navigationTitle("Upcoming Stops")
                     }
                     .padding(10)
+                    .presentationDetents([.medium])
                     .presentationBackground(.regularMaterial)
-                    .presentationDetents([.medium, .large])
                 }
             })
             .onReceive(timer) { _ in

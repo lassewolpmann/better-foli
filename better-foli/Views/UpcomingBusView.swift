@@ -40,7 +40,7 @@ struct UpcomingBusView: View {
                         Text(upcomingBus.destinationdisplay)
                     } icon: {
                         Image(systemName: "location.circle.fill")
-                            .foregroundStyle(.red)
+                            .foregroundStyle(.orange)
                     }
                     .labelStyle(AlignedLabel())
                 }
@@ -92,7 +92,6 @@ struct UpcomingBusView: View {
 }
 
 #Preview {
-    let currentTimestamp = Int(Date.now.timeIntervalSince1970)
     let upcomingBus = DetailedSiriStop.Result()
     
     NavigationStack {

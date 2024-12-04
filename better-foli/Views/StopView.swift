@@ -28,6 +28,23 @@ struct StopView: View {
             }
             .padding(.horizontal, 10)
             .navigationTitle("\(stop.stop_name) - \(stop.stop_code)")
+            .toolbar {
+                Button {
+                    if (foliData.favouriteStops.contains(stop)) {
+                        foliData.favouriteStops.removeAll { favouriteStop in
+                            favouriteStop == stop
+                        }
+                    } else {
+                        foliData.favouriteStops.append(stop)
+                    }
+                } label: {
+                    Label {
+                        Text("Save to Favourites")
+                    } icon: {
+                        Image(systemName: foliData.favouriteStops.contains(stop) ? "star.fill" : "star")
+                    }
+                }
+            }
         }
         .task {
             do {

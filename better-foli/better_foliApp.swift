@@ -6,12 +6,17 @@
 //
 
 import SwiftUI
+import MapKit
 
 @main
 struct better_foliApp: App {
     var body: some Scene {
+        let center = CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379)
+        let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        let fallbackLocation = MKCoordinateRegion(center: center, span: span)
+        
         WindowGroup {
-            ContentView()
+            ContentView(mapCameraPosition: .userLocation(fallback: .region(fallbackLocation)))
         }
     }
 }

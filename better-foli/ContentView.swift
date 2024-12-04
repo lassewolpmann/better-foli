@@ -11,17 +11,16 @@ import MapKit
 struct ContentView: View {
     @State private var foliData = FoliDataClass()
     @State private var locationManager = LocationManagerClass()
+    @State private var searchFilter: String = ""
     
-    @State private var tempSearch: String = ""
+    @State var mapCameraPosition: MapCameraPosition
         
     var body: some View {
-        let center = CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379)
-        let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        let fallbackLocation = MKCoordinateRegion(center: center, span: span)
+        
         
         NavigationStack {
-            VStack(spacing: 10) {
-                TextField("\(Image(systemName: "bus")) Find Stop", text: $tempSearch)
+            VStack(alignment: .leading, spacing: 10) {
+                TextField("\(Image(systemName: "bus")) Find Stop", text: $searchFilter)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
@@ -29,7 +28,7 @@ struct ContentView: View {
                             .fill(.thinMaterial)
                     )
                 
-                Map(initialPosition: .userLocation(fallback: .region(fallbackLocation)), bounds: MapCameraBounds(maximumDistance: 5000)) {
+                Map(position: $mapCameraPosition, bounds: MapCameraBounds(maximumDistance: 5000)) {
                     UserAnnotation()
                     
                     ForEach(foliData.filteredStops.sorted { $0.key < $1.key} , id: \.key) { stopDict in
@@ -61,6 +60,17 @@ struct ContentView: View {
             }
             .padding(10)
             .navigationTitle("Föli")
+            .toolbar {
+                NavigationLink {
+                    FavouriteStopsView(foliData: foliData)
+                } label: {
+                    Label {
+                        Text("Favourites")
+                    } icon: {
+                        Image(systemName: "star.fill")
+                    }
+                }
+            }
         }
         .task {
             locationManager.requestAuthorization()
@@ -75,5 +85,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    let center = CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379)
+    let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+    let fallbackLocation = MKCoordinateRegion(center: center, span: span)
+    
+    ContentView(mapCameraPosition: .region(fallbackLocation))
 }
