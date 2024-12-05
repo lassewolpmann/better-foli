@@ -9,19 +9,19 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-struct ContentView: View {    
-    let foliData: FoliDataClass
+struct ContentView: View {
+    @Bindable var foliData: FoliDataClass
     let locationManager: LocationManagerClass
     
-    @State private var searchFilter: String = ""
     @State var mapCameraPosition: MapCameraPosition
+    @State private var showSearchSheet: Bool = false
     
     @Query var favouriteStops: [FavouriteStop]
         
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 10) {
-                TextField("\(Image(systemName: "bus")) Find Stop", text: $searchFilter)
+            VStack {
+                TextField("\(Image(systemName: "bus")) Find Stop", text: $foliData.searchFilter)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
                     .background(
@@ -30,6 +30,7 @@ struct ContentView: View {
                     )
                 
                 Map(position: $mapCameraPosition) {
+                    // Always show user location
                     UserAnnotation()
                     
                     ForEach(foliData.filteredStops.sorted { $0.key < $1.key} , id: \.key) { stopDict in

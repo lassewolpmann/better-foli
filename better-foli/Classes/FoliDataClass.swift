@@ -17,6 +17,8 @@ import MapKit
     var cameraHeight: Double?
     var favouriteStops: [FavouriteStop]?
     
+    var searchFilter: String = ""
+    
     func getGtfsStops() async throws -> Void {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return }
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -24,31 +26,35 @@ import MapKit
     }
     
     var filteredStops: [String: GtfsStop] {
-        if let cameraPosition, let cameraHeight, let favouriteStops {
-            return allStops.filter { stop in
-                let stopData = stop.value
-                
-                let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stopData.stop_lat), longitude: CLLocationDegrees(stopData.stop_lon))
-                                
-                let lat = cameraPosition.center.latitude
-                let latMin = lat - cameraPosition.span.latitudeDelta / 2
-                let latMax = lat + cameraPosition.span.latitudeDelta / 2
-                
-                let lon = cameraPosition.center.longitude
-                let lonMin = lon - cameraPosition.span.longitudeDelta / 2
-                let lonMax = lon + cameraPosition.span.longitudeDelta / 2
-                
-                // Return true if stop is in favourites, regardless of map position
-                if (favouriteStops.contains { $0.stopCode == stopData.stop_code}) { return true }
-                
-                // Return true if stop is in camera region and distance
-                if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax && cameraHeight <= 3000) { return true }
-                
-                // Default return false
-                return false
+        if (self.searchFilter == "") {
+            if let cameraPosition, let cameraHeight, let favouriteStops {
+                return allStops.filter { stop in
+                    let stopData = stop.value
+                    
+                    let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stopData.stop_lat), longitude: CLLocationDegrees(stopData.stop_lon))
+                                    
+                    let lat = cameraPosition.center.latitude
+                    let latMin = lat - cameraPosition.span.latitudeDelta / 2
+                    let latMax = lat + cameraPosition.span.latitudeDelta / 2
+                    
+                    let lon = cameraPosition.center.longitude
+                    let lonMin = lon - cameraPosition.span.longitudeDelta / 2
+                    let lonMax = lon + cameraPosition.span.longitudeDelta / 2
+                    
+                    // Return true if stop is in favourites, regardless of map position
+                    if (favouriteStops.contains { $0.stopCode == stopData.stop_code}) { return true }
+                    
+                    // Return true if stop is in camera region and distance
+                    if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax && cameraHeight <= 3000) { return true }
+                    
+                    // Default return false
+                    return false
+                }
+            } else {
+                return [:]
             }
         } else {
-            return [:]
+            return allStops.filter { $0.value.stop_name.lowercased().contains(self.searchFilter.lowercased()) }
         }
     }
     
