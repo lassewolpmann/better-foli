@@ -8,16 +8,6 @@
 import SwiftUI
 import MapKit
 
-struct AlignedLabel: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(alignment: .center) {
-            configuration.icon
-            configuration.title
-        }
-        .multilineTextAlignment(.leading)
-    }
-}
-
 struct UpcomingBusView: View {
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result

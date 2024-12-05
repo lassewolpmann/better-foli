@@ -8,18 +8,28 @@
 import SwiftUI
 
 struct FavouriteStopLabelView: View {
+    let stop: GtfsStop
+    
     var body: some View {
-        Image(systemName: "star")
+        HStack(alignment: .center, spacing: 15) {
+            HStack {
+                Image(systemName: "parkingsign")
+                Text(stop.stop_code)
+            }
+            .font(.subheadline)
+            .frame(width: 75, height: 25)
             .foregroundStyle(.orange)
-            .padding(5)
             .background(
-                Circle()
-                    .fill(.white)
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(.clear)
                     .stroke(.orange, lineWidth: 2)
             )
+            
+            Text(stop.stop_name)
+        }
     }
 }
 
 #Preview {
-    FavouriteStopLabelView()
+    FavouriteStopLabelView(stop: GtfsStop())
 }

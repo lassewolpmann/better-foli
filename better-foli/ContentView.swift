@@ -63,7 +63,7 @@ struct ContentView: View {
             .navigationTitle("Föli")
             .toolbar {
                 NavigationLink {
-                    FavouriteStopsView(foliData: foliData)
+                    FavouritesView(foliData: foliData)
                 } label: {
                     Label {
                         Text("Favourites")

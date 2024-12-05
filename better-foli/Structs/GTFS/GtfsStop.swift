@@ -9,7 +9,7 @@ import Foundation
 
 struct GtfsStop: Decodable, Equatable {
     // https://data.foli.fi/doc/gtfs/v0/stops-en
-    var stop_code: String = "0"
+    var stop_code: String = "0000"
     var stop_name: String = "Test Stop"
     var stop_desc: String = "Test Stop Description"
     var stop_lat: Float = 0.0
