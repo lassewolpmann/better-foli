@@ -7,63 +7,63 @@
 
 import Foundation
 import MapKit
+import SwiftData
 
 @Observable class FoliDataClass {
     let baseURL = "https://data.foli.fi"
+    let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    var allStops: [String: GtfsStop] = [:]
+    var stopsLoaded: Bool = false
+    var showStopsWithNoBuses: Bool = false
     
-    var cameraPosition: MKCoordinateRegion?
-    var cameraHeight: Double?
-    var favouriteStops: [FavouriteStop]?
-    
-    var searchFilter: String = ""
-    
-    func getGtfsStops() async throws -> Void {
-        guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return }
+    var allStops: [StopData] = []
+    var favouriteStops: [FavouriteStop] = []
+    var cameraRegion: MKCoordinateRegion?
+    var cameraDistance: Double?
+        
+    func getStops() async throws -> [StopData] {
+        guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
-        self.allStops = try JSONDecoder().decode([String: GtfsStop].self, from: data)
+        let gtfsStops = try JSONDecoder().decode([String: GtfsStop].self, from: data)
+        let stops = gtfsStops.map { stop in
+            return StopData(gtfsStop: stop.value)
+        }
+        
+        self.stopsLoaded = true
+        return stops
     }
     
-    var filteredStops: [String: GtfsStop] {
-        if (self.searchFilter == "") {
-            if let cameraPosition, let cameraHeight, let favouriteStops {
-                return allStops.filter { stop in
-                    let stopData = stop.value
-                    
-                    let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stopData.stop_lat), longitude: CLLocationDegrees(stopData.stop_lon))
-                                    
-                    let lat = cameraPosition.center.latitude
-                    let latMin = lat - cameraPosition.span.latitudeDelta / 2
-                    let latMax = lat + cameraPosition.span.latitudeDelta / 2
-                    
-                    let lon = cameraPosition.center.longitude
-                    let lonMin = lon - cameraPosition.span.longitudeDelta / 2
-                    let lonMax = lon + cameraPosition.span.longitudeDelta / 2
-                    
-                    // Return true if stop is in favourites, regardless of map position
-                    if (favouriteStops.contains { $0.stopCode == stopData.stop_code}) { return true }
-                    
-                    // Return true if stop is in camera region and distance
-                    if (stopCoords.latitude >= latMin && stopCoords.latitude <= latMax && stopCoords.longitude >= lonMin && stopCoords.longitude <= lonMax && cameraHeight <= 3000) { return true }
-                    
-                    // Default return false
-                    return false
-                }
-            } else {
-                return [:]
-            }
-        } else {
-            return allStops.filter { $0.value.stop_name.lowercased().contains(self.searchFilter.lowercased()) }
+    var filteredStops: [StopData] {
+        guard let cameraRegion, let cameraDistance else { return [] }
+        let spanBuffer = 0.001
+        
+        return allStops.filter { stop in
+            let lat = cameraRegion.center.latitude
+            let latMin = (lat - cameraRegion.span.latitudeDelta / 2) - spanBuffer
+            let latMax = (lat + cameraRegion.span.latitudeDelta / 2) + spanBuffer
+            
+            let lon = cameraRegion.center.longitude
+            let lonMin = (lon - cameraRegion.span.longitudeDelta / 2) - spanBuffer
+            let lonMax = (lon + cameraRegion.span.longitudeDelta / 2) + spanBuffer
+            
+            // Return true if stop is in favourites, regardless of any other factor
+            if (favouriteStops.contains { $0.stopCode == stop.code }) { return true }
+            
+            // Return false if no upcoming Buses and option to show Stops with no buses is false
+            // if (stop.upcomingBuses.isEmpty && !self.showStopsWithNoBuses) { return false }
+            
+            // Return true if stop is in camera region and distance
+            if (stop.latitude >= latMin && stop.latitude <= latMax && stop.longitude >= lonMin && stop.longitude <= lonMax && cameraDistance <= 3000) { return true }
+            
+            // Default return false
+            return false
         }
     }
     
-    func getSiriStopData(stopCode: String) async throws -> DetailedSiriStop? {
-        guard let url = URL(string: "\(baseURL)/siri/stops/\(stopCode)") else { return nil }
+    func getSiriStopData(stop: StopData) async throws -> DetailedSiriStop? {
+        guard let url = URL(string: "\(baseURL)/siri/stops/\(stop.code)") else { return nil }
         let (data, _) = try await URLSession.shared.data(from: url)
-        let stopData = try JSONDecoder().decode(DetailedSiriStop.self, from: data)
-                
-        return stopData
+        return try JSONDecoder().decode(DetailedSiriStop.self, from: data)
     }
     
     func getSiriVehicleData() async throws -> SiriVehicleMonitoring? {

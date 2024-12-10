@@ -54,10 +54,8 @@ struct UpcomingBusView: View {
 }
 
 #Preview {
-    let upcomingBus = DetailedSiriStop.Result()
-    
     NavigationStack {
-        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: upcomingBus)
+        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result())
     }
     .padding(10)
 }

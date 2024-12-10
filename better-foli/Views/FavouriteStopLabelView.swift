@@ -6,15 +6,16 @@
 //
 
 import SwiftUI
+import CoreLocation
 
 struct FavouriteStopLabelView: View {
-    let stop: GtfsStop
+    let stop: StopData
     
     var body: some View {
         HStack(alignment: .center, spacing: 15) {
             HStack {
                 Image(systemName: "parkingsign")
-                Text(stop.stop_code)
+                Text(stop.code)
             }
             .font(.subheadline)
             .frame(width: 75, height: 25)
@@ -25,11 +26,11 @@ struct FavouriteStopLabelView: View {
                     .stroke(.orange, lineWidth: 2)
             )
             
-            Text(stop.stop_name)
+            Text(stop.name)
         }
     }
 }
 
 #Preview {
-    FavouriteStopLabelView(stop: GtfsStop())
+    FavouriteStopLabelView(stop: StopData(gtfsStop: GtfsStop()))
 }

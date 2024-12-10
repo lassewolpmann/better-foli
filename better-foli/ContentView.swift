@@ -14,83 +14,115 @@ struct ContentView: View {
     let locationManager: LocationManagerClass
     
     @State var mapCameraPosition: MapCameraPosition
-    @State private var showSearchSheet: Bool = false
     
+    @Environment(\.modelContext) private var context
+    @Query var allStops: [StopData]
     @Query var favouriteStops: [FavouriteStop]
-        
+    
     var body: some View {
         NavigationStack {
             VStack {
-                TextField("\(Image(systemName: "bus")) Find Stop", text: $foliData.searchFilter)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(
-                        RoundedRectangle(cornerRadius: 5)
-                            .fill(.thinMaterial)
-                    )
-                
-                Map(position: $mapCameraPosition) {
-                    // Always show user location
-                    UserAnnotation()
+                NavigationLink {
+                    BusStopSearchView(foliData: foliData, locationManager: locationManager, mapCameraPosition: mapCameraPosition)
+                } label: {
+                    Label {
+                        Text("Search Stop")
+                    } icon: {
+                        Image(systemName: "magnifyingglass")
+                    }
                     
-                    ForEach(foliData.filteredStops.sorted { $0.key < $1.key} , id: \.key) { stopDict in
-                        let stop = stopDict.value
-                        let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stop.stop_lat), longitude: CLLocationDegrees(stop.stop_lon))
+                    Spacer()
+                }
+                .padding(10)
+                .background(
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(.thinMaterial)
+                )
+
+                ZStack(alignment: .bottomTrailing) {
+                    Map(position: $mapCameraPosition) {
+                        // Always show user location
+                        UserAnnotation()
                         
-                        Annotation(coordinate: stopCoords) {
-                            NavigationLink {
-                                StopView(foliData: foliData, stop: stop)
-                            } label: {
-                                let isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
-                                
-                                BusStopLabelView(isFavourite: isFavourite)
+                        ForEach(foliData.filteredStops, id: \.code) { stop in
+                            Annotation(stop.name, coordinate: stop.coords) {
+                                NavigationLink {
+                                    StopView(foliData: foliData, stop: stop)
+                                } label: {
+                                    let isFavourite = favouriteStops.contains { $0.stopCode == stop.code }
+                                    
+                                    BusStopLabelView(isFavourite: isFavourite)
+                                }
                             }
-                        } label: {
-                            Text(stop.stop_name)
                         }
                     }
+                    .mapControls {
+                        MapCompass()
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .onMapCameraChange(frequency: .continuous, { context in
+                        foliData.cameraRegion = context.region
+                        foliData.cameraDistance = context.camera.distance
+                    })
+
+                    VStack(alignment: .trailing, spacing: 5) {
+                        Button {
+                            guard let locationCoords = locationManager.manager.location?.coordinate else { return }
+                            mapCameraPosition = .camera(MapCamera(centerCoordinate: locationCoords, distance: 2000))
+                        } label: {
+                            Image(systemName: "location")
+                        }
+                        
+                        Menu {
+                            Toggle(isOn: $foliData.showStopsWithNoBuses) {
+                                Label {
+                                    Text("Show inactive stops")
+                                } icon: {
+                                    Image(systemName: "bus")
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "line.3.horizontal.decrease")
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .padding()
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .mapControls {
-                    MapUserLocationButton().disabled(!locationManager.isAuthorized)
-                    MapCompass()
-                }
-                .onMapCameraChange(frequency: .continuous, { context in
-                    foliData.cameraPosition = context.region
-                    foliData.cameraHeight = context.camera.distance
-                })
             }
             .padding(10)
-            .navigationTitle("Föli")
+            .navigationTitle("Föli Map")
             .toolbar {
                 NavigationLink {
                     FavouritesView(foliData: foliData)
                 } label: {
-                    Label {
-                        Text("Favourites")
-                    } icon: {
-                        Image(systemName: "star.fill")
-                    }
+                    Image(systemName: "star.fill")
                 }
             }
         }
         .task {
-            foliData.favouriteStops = favouriteStops
-            locationManager.requestAuthorization()
-            
-            do {
-                try await foliData.getGtfsStops()
-            } catch {
-                print(error)
+            if (allStops.isEmpty) {
+                do {
+                    let stops = try await foliData.getStops()
+                    
+                    // Update context to ensure that all stops are stored in context
+                    for stop in stops {
+                        context.insert(stop)
+                    }
+                } catch {
+                    print(error)
+                }
             }
+            
+            foliData.allStops = allStops
+            foliData.favouriteStops = favouriteStops
+            
+            locationManager.requestAuthorization()
         }
     }
 }
 
 #Preview {
-    let center = CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379)
-    let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-    let fallbackLocation = MKCoordinateRegion(center: center, span: span)
+    let foliData = FoliDataClass()
     
-    ContentView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), mapCameraPosition: .region(fallbackLocation))
+    ContentView(foliData: foliData, locationManager: LocationManagerClass(), mapCameraPosition: .region(foliData.fallbackLocation))
 }

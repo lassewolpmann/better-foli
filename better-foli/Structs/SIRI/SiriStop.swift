@@ -46,7 +46,7 @@ struct DetailedSiriStop: Decodable {
         var __routeref: String = "1"
     }
     
-    var status: String
-    var servertime: Int
-    var result: [DetailedSiriStop.Result]
+    var status: String = ""
+    var servertime: Int = 0
+    var result: [DetailedSiriStop.Result] = [DetailedSiriStop.Result()]
 }

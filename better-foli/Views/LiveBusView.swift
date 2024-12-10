@@ -21,6 +21,7 @@ struct LiveBusView: View {
 
     @State var mapCameraPosition: MapCameraPosition
     
+    @Query var allStops: [StopData]
     @Query var favouriteStops: [FavouriteStop]
     
     var body: some View {
@@ -34,20 +35,16 @@ struct LiveBusView: View {
                     
                     if let onwardsCalls = liveVehicle?.onwardcalls {
                         ForEach(onwardsCalls, id: \.stoppointref) { call in
-                            let stop = foliData.allStops.first { $0.value.stop_code == call.stoppointref }
+                            let stop = allStops.first { $0.code == call.stoppointref }
                             
                             if let stop {
-                                let stop = stop.value
-                                let stopCoords = CLLocationCoordinate2D(latitude: CLLocationDegrees(stop.stop_lat), longitude: CLLocationDegrees(stop.stop_lon))
-                                
-                                Annotation(coordinate: stopCoords) {
-                                    let isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
+                                Annotation(coordinate: stop.coords) {
+                                    let isFavourite = favouriteStops.contains { $0.stopCode == stop.code }
                                     
                                     BusStopLabelView(isFavourite: isFavourite)
                                 } label: {
-                                    Text(stop.stop_name)
+                                    Text(stop.name)
                                 }
-
                             }
                         }
                     }

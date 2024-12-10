@@ -13,8 +13,8 @@ class FavouriteStop {
     @Attribute(.unique) var stopCode: String
     var stopName: String
     
-    init(stop: GtfsStop) {
-        self.stopCode = stop.stop_code
-        self.stopName = stop.stop_name
+    init(stop: StopData) {
+        self.stopCode = stop.code
+        self.stopName = stop.name
     }
 }

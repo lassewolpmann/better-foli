@@ -9,8 +9,9 @@ import SwiftUI
 import SwiftData
 
 struct FavouritesView: View {
-    @Query var favouriteStops: [FavouriteStop]
     @Environment(\.modelContext) private var context
+    @Query var allStops: [StopData]
+    @Query var favouriteStops: [FavouriteStop]
     
     let foliData: FoliDataClass
     
@@ -19,9 +20,7 @@ struct FavouritesView: View {
             List {
                 Section {
                     ForEach(favouriteStops, id: \.stopCode) { favourite in
-                        if let gtfsStop = foliData.allStops.first(where: { $0.value.stop_code == favourite.stopCode }) {
-                            let stop = gtfsStop.value
-
+                        if let stop = allStops.first(where: { $0.code == favourite.stopCode }) {
                             NavigationLink {
                                 StopView(foliData: foliData, stop: stop)
                             } label: {

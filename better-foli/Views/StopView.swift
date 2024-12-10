@@ -10,85 +10,68 @@ import SwiftData
 
 struct StopView: View {
     let foliData: FoliDataClass
-    let stop: GtfsStop
+    let stop: StopData
     
     @State var detailedStop: DetailedSiriStop?
     @State private var isFavourite: Bool = false
     
-    @Query var favouriteStops: [FavouriteStop]
     @Environment(\.modelContext) private var context
+    @Query var favouriteStops: [FavouriteStop]
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    if let detailedStop {
-                        ForEach(detailedStop.result, id: \.__tripref) { result in
-                            UpcomingBusView(foliData: foliData, upcomingBus: result)
+        if let detailedStop {
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(detailedStop.result, id: \.__tripref) { upcomingBus in
+                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus)
                         }
-                    } else {
-                        ProgressView("Loading upcoming Buses...")
+                    }
+                }
+                .padding(.horizontal, 10)
+                .navigationTitle("\(stop.name) - \(stop.code)")
+                .toolbar {
+                    Button {
+                        if (isFavourite) {
+                            deleteFavouriteStop()
+                        } else {
+                            insertFavouriteStop()
+                        }
+                    } label: {
+                        Label {
+                            Text("Save to Favourites")
+                        } icon: {
+                            Image(systemName: isFavourite ? "star.fill" : "star")
+                        }
                     }
                 }
             }
-            .padding(.horizontal, 10)
-            .navigationTitle("\(stop.stop_name) - \(stop.stop_code)")
-            .toolbar {
-                Button {
-                    if (isFavourite) {
-                        deleteFavouriteStop()
-                    } else {
-                        insertFavouriteStop()
+        } else {
+            ProgressView("Loading data...")
+                .task {
+                    do {
+                        detailedStop = try await foliData.getSiriStopData(stop: stop)
+                    } catch {
+                        print(error)
                     }
-                } label: {
-                    Label {
-                        Text("Save to Favourites")
-                    } icon: {
-                        Image(systemName: isFavourite ? "star.fill" : "star")
-                    }
+                    
+                    isFavourite = favouriteStops.contains { $0.stopCode == stop.code }
                 }
-            }
-        }
-        .task {
-            isFavourite = favouriteStops.contains { $0.stopCode == stop.stop_code }
-            
-            do {
-                detailedStop = try await foliData.getSiriStopData(stopCode: stop.stop_code)
-            } catch {
-                print(error)
-            }
         }
     }
     
     private func insertFavouriteStop() {
         let favouriteStop = FavouriteStop(stop: stop)
         context.insert(favouriteStop)
-        
-        do {
-            try context.save()
-            isFavourite = true
-        } catch {
-            print(error)
-        }
     }
     
     private func deleteFavouriteStop() {
-        if let stopToDelete = favouriteStops.first(where: { $0.stopCode == stop.stop_code }) {
+        if let stopToDelete = favouriteStops.first(where: { $0.stopCode == stop.code }) {
             context.delete(stopToDelete)
-            
-            do {
-                try context.save()
-                isFavourite = false
-            } catch {
-                print(error)
-            }
         }
     }
 }
 
 #Preview {
-    let currentTimestamp = Int(Date.now.timeIntervalSince1970)
-    let upcomingBus = DetailedSiriStop.Result()
-    
-    StopView(foliData: FoliDataClass(), stop: GtfsStop(), detailedStop: DetailedSiriStop(status: "OK", servertime: currentTimestamp, result: [upcomingBus, upcomingBus]))
+    StopView(foliData: FoliDataClass(), stop: StopData(gtfsStop: GtfsStop()))
 }

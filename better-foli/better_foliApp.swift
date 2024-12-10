@@ -15,15 +15,13 @@ struct better_foliApp: App {
     @State private var locationManager = LocationManagerClass()
     
     var body: some Scene {
-        let center = CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379)
-        let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        let fallbackLocation = MKCoordinateRegion(center: center, span: span)
-        
         WindowGroup {
-            ContentView(foliData: foliData, locationManager: locationManager, mapCameraPosition: .userLocation(fallback: .region(fallbackLocation)))
+            ContentView(foliData: foliData, locationManager: locationManager, mapCameraPosition: .userLocation(fallback: .region(foliData.fallbackLocation)))
                 .modelContainer(for: [
-                    FavouriteStop.self
-                ])
+                    FavouriteStop.self,
+                    StopData.self
+                ], isAutosaveEnabled: true)
+            
         }
     }
 }
