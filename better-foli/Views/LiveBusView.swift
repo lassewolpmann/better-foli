@@ -22,48 +22,36 @@ struct LiveBusView: View {
     @State var mapCameraPosition: MapCameraPosition
     
     @Query var allStops: [StopData]
-    @Query var favouriteStops: [FavouriteStop]
     
     var body: some View {
         if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude, let coords = tripCoords {
             let busCoordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
 
-            ZStack(alignment: .bottomTrailing) {
-                Map(position: $mapCameraPosition) {
-                    MapPolyline(coordinates: coords, contourStyle: .straight)
-                        .stroke(.orange.opacity(0.8), lineWidth: 3)
-                    
-                    if let onwardsCalls = liveVehicle?.onwardcalls {
-                        ForEach(onwardsCalls, id: \.stoppointref) { call in
-                            let stop = allStops.first { $0.code == call.stoppointref }
-                            
-                            if let stop {
-                                Annotation(coordinate: stop.coords) {
-                                    let isFavourite = favouriteStops.contains { $0.stopCode == stop.code }
-                                    
-                                    BusStopLabelView(isFavourite: isFavourite)
-                                } label: {
-                                    Text(stop.name)
-                                }
-                            }
+            Map(position: $mapCameraPosition) {
+                // Always show user location
+                UserAnnotation()
+                
+                MapPolyline(coordinates: coords, contourStyle: .straight)
+                    .stroke(.orange.opacity(0.8), lineWidth: 3)
+                
+                if let onwardsCalls = liveVehicle?.onwardcalls {
+                    ForEach(onwardsCalls, id: \.stoppointref) { call in
+                        let stop = allStops.first { $0.code == call.stoppointref }
+                        
+                        if let stop {
+                            Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)
+                                .tint(.orange)
                         }
-                    }
-                    
-                    Annotation(coordinate: busCoordinates) {
-                        Image(systemName: "bus")
-                            .foregroundStyle(.orange)
-                            .padding(5)
-                            .background(
-                                Circle()
-                                    .fill(.white)
-                                    .stroke(.orange, lineWidth: 2)
-                            )
-                    } label: {
-                        Text(upcomingBus.lineref)
                     }
                 }
                 
-                VStack(alignment: .trailing) {
+                Marker(upcomingBus.lineref, systemImage: "bus", coordinate: busCoordinates)
+                    .tint(.orange)
+            }
+            .safeAreaInset(edge: .bottom, content: {
+                HStack {
+                    Spacer()
+                    
                     Button {
                         let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                         
@@ -85,10 +73,13 @@ struct LiveBusView: View {
                             Image(systemName: "calendar")
                         }
                     }
+                    
+                    Spacer()
                 }
                 .buttonStyle(.borderedProminent)
-                .padding(.horizontal, 10)
-            }
+                .padding(.top, 15)
+                .background(.ultraThinMaterial)
+            })
             .sheet(isPresented: $showTimetable, content: {
                 if let onwardsCalls = liveVehicle?.onwardcalls {
                     ScrollView {
@@ -97,7 +88,7 @@ struct LiveBusView: View {
                                 Text("Upcoming Stops")
                                     .font(.title)
                             } icon: {
-                                BusStopLabelView(isFavourite: false)
+                                Image(systemName: "parkingsign")
                             }
                             
                             ForEach(onwardsCalls, id: \.stoppointref) { call in
@@ -122,7 +113,7 @@ struct LiveBusView: View {
                     .presentationBackground(.regularMaterial)
                 }
             })
-            .onReceive(timer) { _ in                
+            .onReceive(timer) { _ in
                 Task {
                     if let vehicleRef = upcomingBus.vehicleref {
                         do {

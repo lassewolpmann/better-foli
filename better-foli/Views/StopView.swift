@@ -13,11 +13,7 @@ struct StopView: View {
     let stop: StopData
     
     @State var detailedStop: DetailedSiriStop?
-    @State private var isFavourite: Bool = false
-    
-    @Environment(\.modelContext) private var context
-    @Query var favouriteStops: [FavouriteStop]
-    
+        
     var body: some View {
         if let detailedStop {
             NavigationStack {
@@ -32,16 +28,12 @@ struct StopView: View {
                 .navigationTitle("\(stop.name) - \(stop.code)")
                 .toolbar {
                     Button {
-                        if (isFavourite) {
-                            deleteFavouriteStop()
-                        } else {
-                            insertFavouriteStop()
-                        }
+                        stop.isFavourite.toggle()
                     } label: {
                         Label {
                             Text("Save to Favourites")
                         } icon: {
-                            Image(systemName: isFavourite ? "star.fill" : "star")
+                            Image(systemName: stop.isFavourite ? "star.fill" : "star")
                         }
                     }
                 }
@@ -54,20 +46,7 @@ struct StopView: View {
                     } catch {
                         print(error)
                     }
-                    
-                    isFavourite = favouriteStops.contains { $0.stopCode == stop.code }
                 }
-        }
-    }
-    
-    private func insertFavouriteStop() {
-        let favouriteStop = FavouriteStop(stop: stop)
-        context.insert(favouriteStop)
-    }
-    
-    private func deleteFavouriteStop() {
-        if let stopToDelete = favouriteStops.first(where: { $0.stopCode == stop.code }) {
-            context.delete(stopToDelete)
         }
     }
 }

@@ -9,6 +9,8 @@ import SwiftUI
 import MapKit
 
 struct UpcomingBusView: View {
+    @Environment(\.dismiss) private var dismiss
+    
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
     

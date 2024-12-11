@@ -18,11 +18,15 @@ struct FavouritesView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(favouriteStops, id: \.code) { favourite in
+                    ForEach(favouriteStops, id: \.code) { stop in
                         NavigationLink {
-                            StopView(foliData: foliData, stop: favourite)
+                            StopView(foliData: foliData, stop: stop)
                         } label: {
-                            FavouriteStopLabelView(stop: favourite)
+                            Label {
+                                Text(stop.name)
+                            } icon: {
+                                Text(stop.code)
+                            }
                         }
                     }
                 } header: {

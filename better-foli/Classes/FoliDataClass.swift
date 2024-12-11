@@ -9,12 +9,10 @@ import Foundation
 import MapKit
 import SwiftData
 
-@Observable class FoliDataClass {
+class FoliDataClass {
     let baseURL = "https://data.foli.fi"
     let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    var showStopsWithNoBuses: Bool = false
-            
     func getStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -25,35 +23,6 @@ import SwiftData
             return StopData(gtfsStop: stop.value)
         }
     }
-    
-    /*
-    var filteredStops: [StopData] {
-        guard let cameraRegion, let cameraDistance else { return [] }
-        let spanBuffer = 0.001
-        
-        return allStops.filter { stop in
-            let lat = cameraRegion.center.latitude
-            let latMin = (lat - cameraRegion.span.latitudeDelta / 2) - spanBuffer
-            let latMax = (lat + cameraRegion.span.latitudeDelta / 2) + spanBuffer
-            
-            let lon = cameraRegion.center.longitude
-            let lonMin = (lon - cameraRegion.span.longitudeDelta / 2) - spanBuffer
-            let lonMax = (lon + cameraRegion.span.longitudeDelta / 2) + spanBuffer
-            
-            // Return true if stop is in favourites, regardless of any other factor
-            if (favouriteStops.contains { $0.stopCode == stop.code }) { return true }
-            
-            // Return false if no upcoming Buses and option to show Stops with no buses is false
-            // if (stop.upcomingBuses.isEmpty && !self.showStopsWithNoBuses) { return false }
-            
-            // Return true if stop is in camera region and distance
-            if (stop.latitude >= latMin && stop.latitude <= latMax && stop.longitude >= lonMin && stop.longitude <= lonMax && cameraDistance <= 3000) { return true }
-            
-            // Default return false
-            return false
-        }
-    }
-     */
     
     func getSiriStopData(stop: StopData) async throws -> DetailedSiriStop? {
         guard let url = URL(string: "\(baseURL)/siri/stops/\(stop.code)") else { return nil }
