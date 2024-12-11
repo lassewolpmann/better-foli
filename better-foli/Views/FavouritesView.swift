@@ -10,8 +10,7 @@ import SwiftData
 
 struct FavouritesView: View {
     @Environment(\.modelContext) private var context
-    @Query var allStops: [StopData]
-    @Query var favouriteStops: [FavouriteStop]
+    @Query(filter: #Predicate<StopData> { $0.isFavourite }) var favouriteStops: [StopData]
     
     let foliData: FoliDataClass
     
@@ -19,13 +18,11 @@ struct FavouritesView: View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(favouriteStops, id: \.stopCode) { favourite in
-                        if let stop = allStops.first(where: { $0.code == favourite.stopCode }) {
-                            NavigationLink {
-                                StopView(foliData: foliData, stop: stop)
-                            } label: {
-                                FavouriteStopLabelView(stop: stop)
-                            }
+                    ForEach(favouriteStops, id: \.code) { favourite in
+                        NavigationLink {
+                            StopView(foliData: foliData, stop: favourite)
+                        } label: {
+                            FavouriteStopLabelView(stop: favourite)
                         }
                     }
                 } header: {

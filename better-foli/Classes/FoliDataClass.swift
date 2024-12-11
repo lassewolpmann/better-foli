@@ -13,26 +13,20 @@ import SwiftData
     let baseURL = "https://data.foli.fi"
     let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    var stopsLoaded: Bool = false
     var showStopsWithNoBuses: Bool = false
-    
-    var allStops: [StopData] = []
-    var favouriteStops: [FavouriteStop] = []
-    var cameraRegion: MKCoordinateRegion?
-    var cameraDistance: Double?
-        
+            
     func getStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
+        
         let gtfsStops = try JSONDecoder().decode([String: GtfsStop].self, from: data)
-        let stops = gtfsStops.map { stop in
+
+        return gtfsStops.map { stop in
             return StopData(gtfsStop: stop.value)
         }
-        
-        self.stopsLoaded = true
-        return stops
     }
     
+    /*
     var filteredStops: [StopData] {
         guard let cameraRegion, let cameraDistance else { return [] }
         let spanBuffer = 0.001
@@ -59,6 +53,7 @@ import SwiftData
             return false
         }
     }
+     */
     
     func getSiriStopData(stop: StopData) async throws -> DetailedSiriStop? {
         guard let url = URL(string: "\(baseURL)/siri/stops/\(stop.code)") else { return nil }

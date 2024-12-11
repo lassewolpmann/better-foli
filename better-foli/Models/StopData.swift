@@ -18,6 +18,7 @@ class StopData {
     var coords: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: self.latitude, longitude: self.longitude)
     }
+    var isFavourite: Bool = false
     
     init(gtfsStop: GtfsStop) {
         self.code = gtfsStop.stop_code
