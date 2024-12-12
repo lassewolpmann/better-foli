@@ -42,7 +42,7 @@ struct DetailedSiriStop: Decodable {
         var delay: Int?
         var incongestion: Bool?
         
-        var __tripref: String = "00010105__1001040100"
+        var __tripref: String = "00010105__10010f40100"
         var __routeref: String = "1"
     }
     

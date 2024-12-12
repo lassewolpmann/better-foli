@@ -14,6 +14,7 @@ struct ContentView: View {
     let locationManager: LocationManagerClass
         
     @State var mapCameraPosition: MapCameraPosition
+    
     @State private var cameraRegion: MKCoordinateRegion?
     @State private var selectedStop: StopData?
     @State private var searchFilter: String = ""
@@ -45,65 +46,69 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ZStack {
-            Map(position: $mapCameraPosition, selection: $selectedStop) {
-                // Always show user location
-                UserAnnotation()
+        if (allStops.isEmpty || allTrips.isEmpty) {
+            ProgressView("Loading data...")
+                .task {
+                    do {
+                        if (allStops.isEmpty) {
+                            print("Loading all stops...")
+                            let stops = try await foliData.getAllStops()
+                            for stop in stops {
+                                context.insert(stop)
+                            }
+                            
+                            try context.save()
+                        }
+                        
+                        if (allTrips.isEmpty) {
+                            print("Loading all trips...")
+                            let trips = try await foliData.getAllTrips()
+                            for trip in trips {
+                                context.insert(trip)
+                            }
+                            
+                            try context.save()
+                        }
+                    } catch {
+                        print(error)
+                    }
+                }
+        } else {
+            ZStack {
+                Map(position: $mapCameraPosition, selection: $selectedStop) {
+                    // Always show user location
+                    UserAnnotation()
+                    
+                    ForEach(filteredStops, id: \.code) { stop in
+                        Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "bus", coordinate: stop.coords)
+                            .tint(.orange)
+                            .tag(stop)
+                    }
+                }
                 
-                ForEach(filteredStops, id: \.code) { stop in
-                    Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "bus", coordinate: stop.coords)
-                        .tint(.orange)
-                        .tag(stop)
+                .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
+                .onMapCameraChange(frequency: .onEnd, { context in
+                    cameraRegion = context.region
+                })
+                .mapControls {
+                    MapCompass()
+                }
+                
+                if (!searchFilter.isEmpty) {
+                    BusStopSearchView(searchFilter: searchFilter, mapCameraPosition: $mapCameraPosition)
                 }
             }
-            
-            .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
-            .onMapCameraChange(frequency: .onEnd, { context in
-                cameraRegion = context.region
+            .onChange(of: mapCameraPosition, {
+                searchFilter = ""
             })
-            .mapControls {
-                MapCompass()
+            .safeAreaInset(edge: .bottom, content: {
+                OverviewMapButtonsView(foliData: foliData, searchFilter: $searchFilter, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites)
+            })
+            .sheet(item: $selectedStop) { stop in
+                StopView(foliData: foliData, stop: stop)
             }
-            
-            if (!searchFilter.isEmpty) {
-                BusStopSearchView(searchFilter: searchFilter, mapCameraPosition: $mapCameraPosition)
-            }
-        }
-        .onChange(of: mapCameraPosition, {
-            searchFilter = ""
-        })
-        .safeAreaInset(edge: .bottom, content: {
-            OverviewMapButtonsView(foliData: foliData, searchFilter: $searchFilter, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites)
-        })
-        .sheet(item: $selectedStop) { stop in
-            StopView(foliData: foliData, stop: stop)
-        }
-        .sheet(isPresented: $showFavourites) {
-            FavouritesView(foliData: foliData)
-        }
-        .task {
-            do {
-                if (allStops.isEmpty) {
-                    print("Loading all stops...")
-                    let stops = try await foliData.getAllStops()
-                    for stop in stops {
-                        context.insert(stop)
-                    }
-                    
-                    try context.save()
-                }
-                
-                if (allTrips.isEmpty) {
-                    print("Loading all trips...")
-                    let trips = try await foliData.getAllTrips()
-                    for trip in trips {
-                        context.insert(trip)
-                    }
-                    
-                    try context.save()
-                }
-            } catch {
-                print(error)
+            .sheet(isPresented: $showFavourites) {
+                FavouritesView(foliData: foliData)
             }
         }
     }

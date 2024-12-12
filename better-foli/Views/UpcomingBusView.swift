@@ -14,18 +14,16 @@ struct UpcomingBusView: View {
     
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
-    let trip: TripData
     
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             Text(upcomingBus.lineref)
                 .bold()
                 .frame(width: 50)
-
+            
             if (upcomingBus.monitored) {
                 NavigationLink {
-                    let mapCameraPosition: MapCameraPosition = .region(.init(center: .init(latitude: upcomingBus.latitude ?? 0.0, longitude: upcomingBus.longitude ?? 0.0), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))
-                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip, mapCameraPosition: mapCameraPosition)
+                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus)
                 } label: {
                     Label {
                         Text(upcomingBus.destinationdisplay)
@@ -56,7 +54,7 @@ struct UpcomingBusView: View {
 
 #Preview {
     NavigationStack {
-        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result(), trip: TripData(trip: GtfsTrip()))
+        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result())
     }
     .padding(10)
 }

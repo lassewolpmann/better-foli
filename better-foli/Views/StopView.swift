@@ -21,9 +21,7 @@ struct StopView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(detailedStop.result, id: \.__tripref) { upcomingBus in
-                            if let trip = allTrips.first(where: { $0.tripID == upcomingBus.__tripref }) {
-                                UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip)
-                            }
+                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus)
                         }
                     }
                 }
