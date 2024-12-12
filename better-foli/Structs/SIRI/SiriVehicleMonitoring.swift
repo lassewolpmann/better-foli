@@ -10,7 +10,7 @@ import Foundation
 struct SiriVehicleMonitoring: Decodable {
     struct Result: Decodable {
         struct Vehicle: Decodable {
-            struct OnwardCalls: Decodable {
+            struct OnwardCalls: Codable {
                 var stoppointname: String
                 var stoppointref: String
                 var aimedarrivaltime: Int

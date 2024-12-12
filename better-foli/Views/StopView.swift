@@ -13,14 +13,17 @@ struct StopView: View {
     let stop: StopData
     
     @State var detailedStop: DetailedSiriStop?
-        
+    @Query var allTrips: [TripData]
+    
     var body: some View {
         if let detailedStop {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(detailedStop.result, id: \.__tripref) { upcomingBus in
-                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus)
+                            if let trip = allTrips.first(where: { $0.tripID == upcomingBus.__tripref }) {
+                                UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip)
+                            }
                         }
                     }
                 }

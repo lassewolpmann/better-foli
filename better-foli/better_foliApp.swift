@@ -14,23 +14,14 @@ struct better_foliApp: App {
     @State var foliData = FoliDataClass()
     let locationManager = LocationManagerClass()
     
-    let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-    
     var body: some Scene {
         WindowGroup {
             ContentView(foliData: foliData, locationManager: locationManager, mapCameraPosition: .userLocation(fallback: .region(foliData.fallbackLocation)))
                 .modelContainer(for: [
                     StopData.self,
                     TripData.self,
-                    ShapeData.self,
-                    ShapeCoordsData.self
+                    ShapeData.self
                 ], isAutosaveEnabled: true)
-                .onReceive(timer) { _ in
-                    Task {
-                        guard let vehicleData = try await foliData.getSiriVehicleData() else { return }
-                        foliData.vehicleData = vehicleData.result.vehicles.map { $0.value }
-                    }
-                }
         }
     }
 }

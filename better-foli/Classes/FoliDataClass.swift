@@ -33,20 +33,12 @@ class FoliDataClass {
         return try JSONDecoder().decode(DetailedSiriStop.self, from: data)
     }
     
-    func getSiriVehicleData() async throws -> SiriVehicleMonitoring? {
-        guard let url = URL(string: "\(baseURL)/siri/vm") else { return nil }
+    func getAllVehicles() async throws -> [VehicleData] {
+        guard let url = URL(string: "\(baseURL)/siri/vm") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
-        return try JSONDecoder().decode(SiriVehicleMonitoring.self, from: data)
-    }
-    
-    func getVehiclePosition(vehicleRef: String) async throws -> SiriVehicleMonitoring.Result.Vehicle? {
-        if let allVehicles = try await getSiriVehicleData() {
-            return allVehicles.result.vehicles.filter { vehicle in
-                return vehicle.key == vehicleRef
-            }.first?.value
-        } else {
-            return nil
-        }
+        let vehicles = try JSONDecoder().decode(SiriVehicleMonitoring.self, from: data).result.vehicles
+        
+        return vehicles.map { VehicleData(vehicleKey: $0.key, vehicleData: $0.value) }
     }
     
     func getAllTrips() async throws -> [TripData] {
@@ -56,17 +48,10 @@ class FoliDataClass {
         return trips.map { TripData(trip: $0) }
     }
     
-    func getAllShapes() async throws -> [ShapeData] {
-        guard let url = URL(string: "\(baseURL)/gtfs/shapes") else { return [] }
-        let (data, _) = try await URLSession.shared.data(from: url)
-        let shapes = try JSONDecoder().decode([String].self, from: data)
-        return shapes.map { ShapeData(shapeID: $0 )}
-    }
-    
-    func getShape(shapeID: String) async throws -> ShapeCoordsData? {
+    func getShape(shapeID: String) async throws -> ShapeData? {
         guard let url = URL(string: "\(baseURL)/gtfs/shapes/\(shapeID)") else { return nil }
         let (data, _) = try await URLSession.shared.data(from: url)
         let gtfsShapes = try JSONDecoder().decode([GtfsShape].self, from: data)
-        return ShapeCoordsData(shapeID: shapeID, shapes: gtfsShapes)
+        return ShapeData(shapeID: shapeID, shapes: gtfsShapes)
     }
 }

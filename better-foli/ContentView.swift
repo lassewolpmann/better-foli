@@ -12,7 +12,7 @@ import SwiftData
 struct ContentView: View {
     let foliData: FoliDataClass
     let locationManager: LocationManagerClass
-    
+        
     @State var mapCameraPosition: MapCameraPosition
     @State private var cameraRegion: MKCoordinateRegion?
     @State private var selectedStop: StopData?
@@ -21,7 +21,6 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
-    @Query var allShapes: [ShapeData]
     @Query var allTrips: [TripData]
     
     var filteredStops: [StopData] {
@@ -94,16 +93,6 @@ struct ContentView: View {
                     try context.save()
                 }
                 
-                if (allShapes.isEmpty) {
-                    print("Loading all shapes...")
-                    let shapes = try await foliData.getAllShapes()
-                    for shape in shapes {
-                        context.insert(shape)
-                    }
-                    
-                    try context.save()
-                }
-                
                 if (allTrips.isEmpty) {
                     print("Loading all trips...")
                     let trips = try await foliData.getAllTrips()
@@ -116,7 +105,6 @@ struct ContentView: View {
             } catch {
                 print(error)
             }
-            
         }
     }
 }

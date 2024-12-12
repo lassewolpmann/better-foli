@@ -14,20 +14,7 @@ struct UpcomingBusView: View {
     
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
-    
-    @Query var allTrips: [TripData]
-    
-    init(foliData: FoliDataClass, upcomingBus: DetailedSiriStop.Result) {
-        let tripID = upcomingBus.__tripref
-
-        let predicate = #Predicate<TripData> {
-            $0.tripID == tripID
-        }
-
-        self.foliData = foliData
-        self.upcomingBus = upcomingBus
-        _allTrips = Query(filter: predicate)
-    }
+    let trip: TripData
     
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -37,13 +24,8 @@ struct UpcomingBusView: View {
 
             if (upcomingBus.monitored) {
                 NavigationLink {
-                    let center = CLLocationCoordinate2D(latitude: upcomingBus.latitude ?? 0.0, longitude: upcomingBus.longitude ?? 0.0)
-                    let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                    let mapCameraPosition = MapCameraPosition.region(MKCoordinateRegion(center: center, span: span))
-                    
-                    if let trip = allTrips.first {
-                        LiveBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip, busCoords: center, mapCameraPosition: mapCameraPosition)
-                    }
+                    let mapCameraPosition: MapCameraPosition = .region(.init(center: .init(latitude: upcomingBus.latitude ?? 0.0, longitude: upcomingBus.longitude ?? 0.0), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))
+                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip, mapCameraPosition: mapCameraPosition)
                 } label: {
                     Label {
                         Text(upcomingBus.destinationdisplay)
@@ -56,7 +38,7 @@ struct UpcomingBusView: View {
             } else {
                 Text(upcomingBus.destinationdisplay)
             }
-                      
+            
             Spacer()
             
             VStack {
@@ -74,7 +56,7 @@ struct UpcomingBusView: View {
 
 #Preview {
     NavigationStack {
-        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result())
+        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result(), trip: TripData(trip: GtfsTrip()))
     }
     .padding(10)
 }
