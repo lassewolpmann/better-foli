@@ -12,10 +12,9 @@ import SwiftData
 struct ContentView: View {
     let foliData: FoliDataClass
     let locationManager: LocationManagerClass
-        
+    
     @State var mapCameraPosition: MapCameraPosition
     
-    @State private var cameraRegion: MKCoordinateRegion?
     @State private var selectedStop: StopData?
     @State private var showFavourites: Bool = false
     
@@ -34,6 +33,7 @@ struct ContentView: View {
                             for stop in stops {
                                 context.insert(stop)
                             }
+                            try context.save()
                         }
                         
                         if (allTrips.isEmpty) {
@@ -42,6 +42,7 @@ struct ContentView: View {
                             for trip in trips {
                                 context.insert(trip)
                             }
+                            try context.save()
                         }
                     } catch {
                         print(error)
@@ -49,7 +50,7 @@ struct ContentView: View {
                 }
         } else {
             ZStack {
-                Map(position: $mapCameraPosition, selection: $selectedStop) {
+                Map(position: $mapCameraPosition, bounds: .init(maximumDistance: 10000), selection: $selectedStop) {
                     // Always show user location
                     UserAnnotation()
                     
@@ -59,17 +60,9 @@ struct ContentView: View {
                             .tag(stop)
                     }
                 }
-                
                 .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
-                .onMapCameraChange(frequency: .onEnd, { context in
-                    cameraRegion = context.region
-                })
                 .mapControls {
                     MapCompass()
-                }
-                
-                if (!foliData.searchFilteredStops.isEmpty) {
-                    BusStopSearchView(foliData: foliData, mapCameraPosition: $mapCameraPosition)
                 }
             }
             .task {
@@ -81,7 +74,7 @@ struct ContentView: View {
                 foliData.searchFilter = ""
             })
             .safeAreaInset(edge: .bottom, content: {
-                OverviewMapButtonsView(foliData: foliData, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites)
+                OverviewMapButtonsView(foliData: foliData, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites, selectedStop: $selectedStop)
             })
             .sheet(item: $selectedStop) { stop in
                 StopView(foliData: foliData, stop: stop)
