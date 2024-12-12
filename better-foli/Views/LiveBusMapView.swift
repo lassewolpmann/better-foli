@@ -20,7 +20,6 @@ struct LiveBusMapView: View {
     @State private var showTimetable: Bool = false
     
     @Environment(\.modelContext) private var context
-    @Query var allStops: [StopData]
     @Query var allShapes: [ShapeData]
     
     init(foliData: FoliDataClass, trip: TripData, mapCameraPosition: MapCameraPosition, vehicle: VehicleData) {
@@ -62,7 +61,7 @@ struct LiveBusMapView: View {
                 
                 
                 ForEach(vehicle.onwardCalls, id: \.stoppointref) { call in
-                    let stop = allStops.first { $0.code == call.stoppointref }
+                    let stop = foliData.allStops.first { $0.code == call.stoppointref }
                     
                     if let stop {
                         Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)

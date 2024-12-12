@@ -14,7 +14,19 @@ class FoliDataClass {
     let baseURL = "https://data.foli.fi"
     let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    var vehicleData: [SiriVehicleMonitoring.Result.Vehicle] = []
+    var allStops: [StopData] = []
+    var allTrips: [TripData] = []
+    
+    var searchFilter = ""
+    
+    var searchFilteredStops: [StopData] {
+        allStops.filter { stop in
+            if (searchFilter == "") { return false }
+            if (searchFilter.count < 3) { return false }
+            
+            return stop.name.lowercased().contains(searchFilter.lowercased())
+        }
+    }
     
     func getAllStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }

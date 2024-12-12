@@ -9,9 +9,7 @@ import SwiftUI
 import MapKit
 
 struct OverviewMapButtonsView: View {
-    let foliData: FoliDataClass
-    
-    @Binding var searchFilter: String
+    @Bindable var foliData: FoliDataClass    
     @Binding var mapCameraPosition: MapCameraPosition
     @Binding var showFavourites: Bool
     
@@ -19,7 +17,7 @@ struct OverviewMapButtonsView: View {
         HStack(spacing: 5) {
             Spacer()
             
-            TextField(text: $searchFilter) {
+            TextField(text: $foliData.searchFilter) {
                 Label {
                     Text("Search stops")
                 } icon: {
@@ -55,5 +53,5 @@ struct OverviewMapButtonsView: View {
 
 #Preview {
     let foliData = FoliDataClass()
-    OverviewMapButtonsView(foliData: foliData, searchFilter: .constant(""), mapCameraPosition: .constant(.region(foliData.fallbackLocation)), showFavourites: .constant(false))
+    OverviewMapButtonsView(foliData: foliData, mapCameraPosition: .constant(.region(foliData.fallbackLocation)), showFavourites: .constant(false))
 }

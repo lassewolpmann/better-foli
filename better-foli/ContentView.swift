@@ -17,33 +17,11 @@ struct ContentView: View {
     
     @State private var cameraRegion: MKCoordinateRegion?
     @State private var selectedStop: StopData?
-    @State private var searchFilter: String = ""
     @State private var showFavourites: Bool = false
     
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
     @Query var allTrips: [TripData]
-    
-    var filteredStops: [StopData] {
-        guard let cameraRegion else { return [] }
-        let spanBuffer = 0.001
-        
-        return allStops.filter { stop in
-            let lat = cameraRegion.center.latitude
-            let latMin = (lat - cameraRegion.span.latitudeDelta / 2) - spanBuffer
-            let latMax = (lat + cameraRegion.span.latitudeDelta / 2) + spanBuffer
-            
-            let lon = cameraRegion.center.longitude
-            let lonMin = (lon - cameraRegion.span.longitudeDelta / 2) - spanBuffer
-            let lonMax = (lon + cameraRegion.span.longitudeDelta / 2) + spanBuffer
-            
-            // Return true if stop is in camera region and distance
-            if (stop.latitude >= latMin && stop.latitude <= latMax && stop.longitude >= lonMin && stop.longitude <= lonMax) { return true }
-            
-            // Default return false
-            return false
-        }
-    }
     
     var body: some View {
         if (allStops.isEmpty || allTrips.isEmpty) {
@@ -56,8 +34,6 @@ struct ContentView: View {
                             for stop in stops {
                                 context.insert(stop)
                             }
-                            
-                            try context.save()
                         }
                         
                         if (allTrips.isEmpty) {
@@ -66,8 +42,6 @@ struct ContentView: View {
                             for trip in trips {
                                 context.insert(trip)
                             }
-                            
-                            try context.save()
                         }
                     } catch {
                         print(error)
@@ -79,7 +53,7 @@ struct ContentView: View {
                     // Always show user location
                     UserAnnotation()
                     
-                    ForEach(filteredStops, id: \.code) { stop in
+                    ForEach(foliData.allStops, id: \.code) { stop in
                         Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "bus", coordinate: stop.coords)
                             .tint(.orange)
                             .tag(stop)
@@ -94,15 +68,20 @@ struct ContentView: View {
                     MapCompass()
                 }
                 
-                if (!searchFilter.isEmpty) {
-                    BusStopSearchView(searchFilter: searchFilter, mapCameraPosition: $mapCameraPosition)
+                if (!foliData.searchFilteredStops.isEmpty) {
+                    BusStopSearchView(foliData: foliData, mapCameraPosition: $mapCameraPosition)
                 }
             }
+            .task {
+                locationManager.requestAuthorization()
+                foliData.allStops = allStops
+                foliData.allTrips = allTrips
+            }
             .onChange(of: mapCameraPosition, {
-                searchFilter = ""
+                foliData.searchFilter = ""
             })
             .safeAreaInset(edge: .bottom, content: {
-                OverviewMapButtonsView(foliData: foliData, searchFilter: $searchFilter, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites)
+                OverviewMapButtonsView(foliData: foliData, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites)
             })
             .sheet(item: $selectedStop) { stop in
                 StopView(foliData: foliData, stop: stop)

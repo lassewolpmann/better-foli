@@ -13,7 +13,6 @@ struct StopView: View {
     let stop: StopData
     
     @State var detailedStop: DetailedSiriStop?
-    @Query var allTrips: [TripData]
     
     var body: some View {
         if let detailedStop {
