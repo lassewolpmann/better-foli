@@ -12,41 +12,68 @@ import SwiftData
 struct LiveBusView: View {
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
-    
-    let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-    
-    @State private var liveVehicle: SiriVehicleMonitoring.Result.Vehicle?
-    @State private var tripCoords: [CLLocationCoordinate2D]?
+    let trip: TripData
+
     @State private var showTimetable: Bool = false
 
+    @State var busCoords: CLLocationCoordinate2D
+    @State var onwardCalls: [SiriVehicleMonitoring.Result.Vehicle.OnwardCalls] = []
     @State var mapCameraPosition: MapCameraPosition
     
+    @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
+    @Query var allShapes: [ShapeData]
+    @Query var allShapeCoords: [ShapeCoordsData]
+    
+    init(foliData: FoliDataClass, upcomingBus: DetailedSiriStop.Result, trip: TripData, busCoords: CLLocationCoordinate2D, mapCameraPosition: MapCameraPosition) {
+        let shapeID = trip.shapeID
+
+        let predicate = #Predicate<ShapeData> {
+            $0.shapeID == shapeID
+        }
+
+        self.foliData = foliData
+        self.upcomingBus = upcomingBus
+        self.trip = trip
+        self.busCoords = busCoords
+        self.mapCameraPosition = mapCameraPosition
+        
+        _allShapes = Query(filter: predicate)
+    }
     
     var body: some View {
-        if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude, let coords = tripCoords {
-            let busCoordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-
+        if let shape = allShapeCoords.first(where: { $0.shapeID == trip.shapeID }) {
+            let shapeCoords: [CLLocationCoordinate2D] = shape.shapes.map { $0.coords }
+            
             Map(position: $mapCameraPosition) {
                 // Always show user location
                 UserAnnotation()
                 
-                MapPolyline(coordinates: coords, contourStyle: .straight)
+                MapPolyline(coordinates: shapeCoords, contourStyle: .straight)
                     .stroke(.orange.opacity(0.8), lineWidth: 3)
                 
-                if let onwardsCalls = liveVehicle?.onwardcalls {
-                    ForEach(onwardsCalls, id: \.stoppointref) { call in
-                        let stop = allStops.first { $0.code == call.stoppointref }
-                        
-                        if let stop {
-                            Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)
-                                .tint(.orange)
-                        }
+                ForEach(onwardCalls, id: \.stoppointref) { call in
+                    let stop = allStops.first { $0.code == call.stoppointref }
+                    
+                    if let stop {
+                        Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)
+                            .tint(.orange)
                     }
                 }
                 
-                Marker(upcomingBus.lineref, systemImage: "bus", coordinate: busCoordinates)
+                Marker(upcomingBus.lineref, systemImage: "bus", coordinate: busCoords)
                     .tint(.orange)
+            }
+            .onAppear {
+                let vehicleRef = upcomingBus.vehicleref
+                
+                guard let liveVehicle = foliData.vehicleData.first(where: { $0.vehicleref == vehicleRef }) else { return }
+                guard let latitude = liveVehicle.latitude else { return }
+                guard let longitude = liveVehicle.longitude else { return }
+                let coords = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+                busCoords = coords
+                onwardCalls = liveVehicle.onwardcalls ?? []
+                mapCameraPosition = .region(MKCoordinateRegion(center: busCoords, span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)))
             }
             .safeAreaInset(edge: .bottom, content: {
                 HStack {
@@ -55,7 +82,7 @@ struct LiveBusView: View {
                     Button {
                         let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                         
-                        mapCameraPosition = .region(MKCoordinateRegion(center: busCoordinates, span: span))
+                        mapCameraPosition = .region(MKCoordinateRegion(center: busCoords, span: span))
                     } label: {
                         Label {
                             Text("Find Bus")
@@ -81,7 +108,7 @@ struct LiveBusView: View {
                 .background(.ultraThinMaterial)
             })
             .sheet(isPresented: $showTimetable, content: {
-                if let onwardsCalls = liveVehicle?.onwardcalls {
+                if (!onwardCalls.isEmpty) {
                     ScrollView {
                         VStack(spacing: 10) {
                             Label {
@@ -91,7 +118,7 @@ struct LiveBusView: View {
                                 Image(systemName: "parkingsign")
                             }
                             
-                            ForEach(onwardsCalls, id: \.stoppointref) { call in
+                            ForEach(onwardCalls, id: \.stoppointref) { call in
                                 HStack(alignment: .center) {
                                     Text(call.stoppointref)
                                         .bold()
@@ -113,37 +140,16 @@ struct LiveBusView: View {
                     .presentationBackground(.regularMaterial)
                 }
             })
-            .onReceive(timer) { _ in
-                Task {
-                    if let vehicleRef = upcomingBus.vehicleref {
-                        do {
-                            liveVehicle = try await foliData.getVehiclePosition(vehicleRef: vehicleRef)
-                        } catch {
-                            print(error)
-                        }
-                    }
-                }
-            }
         } else {
             ProgressView("Loading bus location...")
                 .task {
-                    if let vehicleRef = upcomingBus.vehicleref {
-                        do {
-                            liveVehicle = try await foliData.getVehiclePosition(vehicleRef: vehicleRef)
-                            
-                            if let routeID = liveVehicle?.__routeref, let tripID = liveVehicle?.__tripref {
-                                tripCoords = try await foliData.getTripCoordinates(routeID: routeID, tripID: tripID)
-                            }
-                            
-                            if let latitude = liveVehicle?.latitude, let longitude = liveVehicle?.longitude {
-                                let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-                                let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                                
-                                mapCameraPosition = .region(MKCoordinateRegion(center: center, span: span))
-                            }
-                        } catch {
-                            print(error)
-                        }
+                    do {
+                        print("Getting shape coords...")
+                        guard let shapeCoords = try await foliData.getShape(shapeID: trip.shapeID) else { return }
+                        context.insert(shapeCoords)
+                        try context.save()
+                    } catch {
+                        print(error)
                     }
                 }
         }
@@ -157,5 +163,5 @@ struct LiveBusView: View {
     let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     let mapCameraPosition = MapCameraPosition.region(MKCoordinateRegion(center: center, span: span))
     
-    LiveBusView(foliData: FoliDataClass(), upcomingBus: upcomingBus, mapCameraPosition: mapCameraPosition)
+    LiveBusView(foliData: FoliDataClass(), upcomingBus: upcomingBus, trip: TripData(trip: GtfsTrip()), busCoords: center, mapCameraPosition: mapCameraPosition)
 }

@@ -9,11 +9,14 @@ import Foundation
 import MapKit
 import SwiftData
 
+@Observable
 class FoliDataClass {
     let baseURL = "https://data.foli.fi"
     let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    func getStops() async throws -> [StopData] {
+    var vehicleData: [SiriVehicleMonitoring.Result.Vehicle] = []
+    
+    func getAllStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
         
@@ -46,37 +49,24 @@ class FoliDataClass {
         }
     }
     
-    func getGtfsTripsForRoute(routeID: String, tripID: String) async throws -> GtfsTrip? {
-        guard let url = URL(string: "\(baseURL)/gtfs/trips/route/\(routeID)") else { return nil }
+    func getAllTrips() async throws -> [TripData] {
+        guard let url = URL(string: "\(baseURL)/gtfs/trips/all") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
         let trips = try JSONDecoder().decode([GtfsTrip].self, from: data)
-        
-        let filteredTrips = trips.filter { trip in
-            return trip.trip_id == tripID
-        }
-                        
-        return filteredTrips.first
+        return trips.map { TripData(trip: $0) }
     }
     
-    func getTripShape(routeID: String, tripID: String) async throws -> [GtfsShape]? {
-        if let trip = try await getGtfsTripsForRoute(routeID: routeID, tripID: tripID) {
-            guard let url = URL(string: "\(baseURL)/gtfs/shapes/\(trip.shape_id)") else { return nil }
-            let (data, _) = try await URLSession.shared.data(from: url)
-            return try JSONDecoder().decode([GtfsShape].self, from: data)
-        } else {
-            return []
-        }
+    func getAllShapes() async throws -> [ShapeData] {
+        guard let url = URL(string: "\(baseURL)/gtfs/shapes") else { return [] }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let shapes = try JSONDecoder().decode([String].self, from: data)
+        return shapes.map { ShapeData(shapeID: $0 )}
     }
     
-    func getTripCoordinates(routeID: String, tripID: String) async throws -> [CLLocationCoordinate2D] {
-        if let shapes = try await getTripShape(routeID: routeID, tripID: tripID) {
-            let coordinates = shapes.map { shape in
-                return CLLocationCoordinate2D(latitude: shape.lat, longitude: shape.lon)
-            }
-            
-            return coordinates
-        } else {
-            return []
-        }
+    func getShape(shapeID: String) async throws -> ShapeCoordsData? {
+        guard let url = URL(string: "\(baseURL)/gtfs/shapes/\(shapeID)") else { return nil }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let gtfsShapes = try JSONDecoder().decode([GtfsShape].self, from: data)
+        return ShapeCoordsData(shapeID: shapeID, shapes: gtfsShapes)
     }
 }

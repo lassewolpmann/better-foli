@@ -21,6 +21,7 @@ struct SiriVehicleMonitoring: Decodable {
             
             var percentage: Double?
             var lineref: String?
+            var vehicleref: String?
             var originname: String?
             var destinationname: String?
             var monitored: Bool?

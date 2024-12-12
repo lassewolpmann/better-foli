@@ -21,6 +21,8 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
+    @Query var allShapes: [ShapeData]
+    @Query var allTrips: [TripData]
     
     var filteredStops: [StopData] {
         guard let cameraRegion else { return [] }
@@ -79,6 +81,42 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showFavourites) {
             FavouritesView(foliData: foliData)
+        }
+        .task {
+            do {
+                if (allStops.isEmpty) {
+                    print("Loading all stops...")
+                    let stops = try await foliData.getAllStops()
+                    for stop in stops {
+                        context.insert(stop)
+                    }
+                    
+                    try context.save()
+                }
+                
+                if (allShapes.isEmpty) {
+                    print("Loading all shapes...")
+                    let shapes = try await foliData.getAllShapes()
+                    for shape in shapes {
+                        context.insert(shape)
+                    }
+                    
+                    try context.save()
+                }
+                
+                if (allTrips.isEmpty) {
+                    print("Loading all trips...")
+                    let trips = try await foliData.getAllTrips()
+                    for trip in trips {
+                        context.insert(trip)
+                    }
+                    
+                    try context.save()
+                }
+            } catch {
+                print(error)
+            }
+            
         }
     }
 }

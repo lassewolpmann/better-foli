@@ -7,12 +7,27 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
 struct UpcomingBusView: View {
     @Environment(\.dismiss) private var dismiss
     
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
+    
+    @Query var allTrips: [TripData]
+    
+    init(foliData: FoliDataClass, upcomingBus: DetailedSiriStop.Result) {
+        let tripID = upcomingBus.__tripref
+
+        let predicate = #Predicate<TripData> {
+            $0.tripID == tripID
+        }
+
+        self.foliData = foliData
+        self.upcomingBus = upcomingBus
+        _allTrips = Query(filter: predicate)
+    }
     
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -26,7 +41,9 @@ struct UpcomingBusView: View {
                     let span = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
                     let mapCameraPosition = MapCameraPosition.region(MKCoordinateRegion(center: center, span: span))
                     
-                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, mapCameraPosition: mapCameraPosition)
+                    if let trip = allTrips.first {
+                        LiveBusView(foliData: foliData, upcomingBus: upcomingBus, trip: trip, busCoords: center, mapCameraPosition: mapCameraPosition)
+                    }
                 } label: {
                     Label {
                         Text(upcomingBus.destinationdisplay)
