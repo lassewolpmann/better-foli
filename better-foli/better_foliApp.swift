@@ -21,7 +21,7 @@ struct better_foliApp: App {
                     StopData.self,
                     TripData.self,
                     ShapeData.self
-                ], isAutosaveEnabled: true)
+                ])
         }
     }
 }

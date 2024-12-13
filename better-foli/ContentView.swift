@@ -16,7 +16,6 @@ struct ContentView: View {
     @State var mapCameraPosition: MapCameraPosition
     
     @State private var selectedStop: StopData?
-    @State private var showFavourites: Bool = false
     
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
@@ -49,38 +48,36 @@ struct ContentView: View {
                     }
                 }
         } else {
-            ZStack {
-                Map(position: $mapCameraPosition, bounds: .init(maximumDistance: 10000), selection: $selectedStop) {
-                    // Always show user location
-                    UserAnnotation()
-                    
-                    ForEach(foliData.allStops, id: \.code) { stop in
-                        Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "bus", coordinate: stop.coords)
-                            .tint(.orange)
-                            .tag(stop)
+            TabView {
+                Tab {
+                    OverviewMapView(foliData: foliData, locationManager: locationManager)
+                } label: {
+                    Label {
+                        Text("Stop Map")
+                    } icon: {
+                        Image(systemName: "map")
                     }
                 }
-                .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
-                .mapControls {
-                    MapCompass()
+                
+                Tab {
+                    FavouritesView(foliData: foliData)
+                } label: {
+                    Label {
+                        Text("Saved Stops and Lines")
+                    } icon: {
+                        Image(systemName: "star")
+                    }
                 }
-            }
-            .task {
-                locationManager.requestAuthorization()
-                foliData.allStops = allStops
-                foliData.allTrips = allTrips
-            }
-            .onChange(of: mapCameraPosition, {
-                foliData.searchFilter = ""
-            })
-            .safeAreaInset(edge: .bottom, content: {
-                OverviewMapButtonsView(foliData: foliData, mapCameraPosition: $mapCameraPosition, showFavourites: $showFavourites, selectedStop: $selectedStop)
-            })
-            .sheet(item: $selectedStop) { stop in
-                StopView(foliData: foliData, stop: stop)
-            }
-            .sheet(isPresented: $showFavourites) {
-                FavouritesView(foliData: foliData)
+                
+                Tab {
+                    Text("Search")
+                } label: {
+                    Label {
+                        Text("Search")
+                    } icon: {
+                        Image(systemName: "magnifyingglass")
+                    }
+                }
             }
         }
     }

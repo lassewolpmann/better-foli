@@ -11,6 +11,8 @@ import SwiftData
 
 @Model
 class StopData {
+    #Index<StopData>([\.latitude], [\.longitude], [\.name], [\.name, \.code])
+
     @Attribute(.unique) var code: String
     var name: String
     var latitude: CLLocationDegrees

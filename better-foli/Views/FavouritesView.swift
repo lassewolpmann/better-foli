@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import MapKit
 
 struct FavouritesView: View {
     @Environment(\.modelContext) private var context
@@ -22,11 +23,27 @@ struct FavouritesView: View {
                         NavigationLink {
                             StopView(foliData: foliData, stop: stop)
                         } label: {
+                            HStack {
+                                Map(initialPosition: .camera(.init(centerCoordinate: stop.coords, distance: 2500))) {
+                                    Marker(stop.name, systemImage: "parkingsign", coordinate: stop.coords)
+                                        .tint(.orange)
+                                        .annotationTitles(.hidden)
+                                }
+                                .disabled(true)
+                                .frame(width: 75, height: 75)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .shadow(radius: 5)
+                                
+                                Text(stop.name)
+                            }
+                            
+                            /*
                             Label {
                                 Text(stop.name)
                             } icon: {
                                 Text(stop.code)
                             }
+                             */
                         }
                     }
                 } header: {
@@ -44,6 +61,6 @@ struct FavouritesView: View {
     }
 }
 
-#Preview {
+#Preview(traits: .sampleStopData) {
     FavouritesView(foliData: FoliDataClass())
 }

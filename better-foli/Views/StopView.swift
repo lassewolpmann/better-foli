@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct StopView: View {
+    @Environment(\.modelContext) private var context
+
     let foliData: FoliDataClass
     let stop: StopData
     
@@ -29,6 +31,12 @@ struct StopView: View {
                 .toolbar {
                     Button {
                         stop.isFavourite.toggle()
+                        
+                        do {
+                            try context.save()
+                        } catch {
+                            print(error)
+                        }
                     } label: {
                         Label {
                             Text("Save to Favourites")

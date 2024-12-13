@@ -9,12 +9,12 @@ import Foundation
 
 struct GtfsStop: Decodable, Equatable {
     // https://data.foli.fi/doc/gtfs/v0/stops-en
-    var stop_code: String = "0000"
-    var stop_name: String = "Test Stop"
-    var stop_desc: String = "Test Stop Description"
-    var stop_lat: Float = 0.0
-    var stop_lon: Float = 0.0
-    var zone_id: String = "Test Zone"
+    var stop_code: String = "1"
+    var stop_name: String = "Turun satama (Silja)"
+    var stop_desc: String = ""
+    var stop_lat: Float = 60.43497
+    var stop_lon: Float = 22.21966
+    var zone_id: String = "F\u{00d6}LI"
     var stop_url: String = ""
     var location_type: Int = 0
     var parent_station: Int = 0

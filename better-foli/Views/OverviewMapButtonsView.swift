@@ -13,13 +13,12 @@ struct OverviewMapButtonsView: View {
 
     @Bindable var foliData: FoliDataClass
     @Binding var mapCameraPosition: MapCameraPosition
-    @Binding var showFavourites: Bool
     @Binding var selectedStop: StopData?
     
     @State var searchFilter: String = ""
     @State private var showSearchSheet: Bool = false
     
-    var body: some View {
+    var body: some View {        
         HStack(spacing: 5) {
             TextField(text: $searchFilter) {
                 Label {
@@ -49,12 +48,6 @@ struct OverviewMapButtonsView: View {
                 mapCameraPosition = .userLocation(fallback: .region(foliData.fallbackLocation))
             } label: {
                 Image(systemName: "location.fill")
-            }
-            
-            Button {
-                showFavourites.toggle()
-            } label: {
-                Image(systemName: "star.fill")
             }
             
             /*
@@ -88,5 +81,5 @@ struct OverviewMapButtonsView: View {
 
 #Preview {
     let foliData = FoliDataClass()
-    OverviewMapButtonsView(foliData: foliData, mapCameraPosition: .constant(.region(foliData.fallbackLocation)), showFavourites: .constant(false), selectedStop: .constant(nil))
+    OverviewMapButtonsView(foliData: foliData, mapCameraPosition: .constant(.region(foliData.fallbackLocation)), selectedStop: .constant(nil))
 }
