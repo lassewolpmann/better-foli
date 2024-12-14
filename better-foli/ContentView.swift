@@ -48,16 +48,6 @@ struct ContentView: View {
         } else {
             TabView {
                 Tab {
-                    OverviewMapView(foliData: foliData, locationManager: locationManager)
-                } label: {
-                    Label {
-                        Text("Stop Map")
-                    } icon: {
-                        Image(systemName: "map")
-                    }
-                }
-                
-                Tab {
                     FavouritesView(foliData: foliData)
                 } label: {
                     Label {
@@ -68,7 +58,17 @@ struct ContentView: View {
                 }
                 
                 Tab {
-                    Text("Search")
+                    OverviewMapView(foliData: foliData, locationManager: locationManager)
+                } label: {
+                    Label {
+                        Text("Stop Map")
+                    } icon: {
+                        Image(systemName: "map")
+                    }
+                }
+                
+                Tab {
+                    SearchView(foliData: foliData)
                 } label: {
                     Label {
                         Text("Search")

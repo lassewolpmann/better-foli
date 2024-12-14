@@ -12,16 +12,13 @@ import SwiftData
 struct OverviewActualMapView: View {
     @Query var allStops: [StopData]
     
-    @State var mapCameraPosition: MapCameraPosition = .userLocation(fallback: .region(FoliDataClass().fallbackLocation))
     @State private var selectedStop: StopData?
     
     let foliData: FoliDataClass
-    let locationManager: LocationManagerClass
     let cameraRegion: MKCoordinateRegion
 
-    init(foliData: FoliDataClass, locationManager: LocationManagerClass, cameraRegion: MKCoordinateRegion) {
+    init(foliData: FoliDataClass, cameraRegion: MKCoordinateRegion) {
         self.foliData = foliData
-        self.locationManager = locationManager
         self.cameraRegion = cameraRegion
         
         let latitude = cameraRegion.center.latitude
@@ -43,7 +40,7 @@ struct OverviewActualMapView: View {
     }
     
     var body: some View {
-        Map(position: $mapCameraPosition, bounds: .init(maximumDistance: 10000), selection: $selectedStop) {
+        Map(initialPosition: .userLocation(fallback: .automatic), bounds: .init(maximumDistance: 10000), selection: $selectedStop) {
             // Always show user location
             UserAnnotation()
             
@@ -55,17 +52,15 @@ struct OverviewActualMapView: View {
         }
         .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
         .mapControls {
+            MapUserLocationButton()
             MapCompass()
         }
         .sheet(item: $selectedStop) { stop in
             StopView(foliData: foliData, stop: stop)
         }
-        .safeAreaInset(edge: .top, content: {
-            OverviewMapButtonsView(foliData: foliData, locationManager: locationManager, mapCameraPosition: $mapCameraPosition, selectedStop: $selectedStop)
-        })
     }
 }
 
-#Preview {
-    OverviewActualMapView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
+#Preview(traits: .sampleData) {
+    OverviewActualMapView(foliData: FoliDataClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
 }
