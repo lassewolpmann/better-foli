@@ -9,15 +9,17 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-struct SampleStopData: PreviewModifier {
+struct SampleData: PreviewModifier {
     static func makeSharedContext() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: StopData.self, configurations: config)
+        let container = try ModelContainer(for: StopData.self, TripData.self, configurations: config)
         
         let sampleStop = StopData(gtfsStop: GtfsStop())
+        let sampleTrip = TripData(trip: GtfsTrip())
         sampleStop.isFavourite = true
         
         container.mainContext.insert(sampleStop)
+        container.mainContext.insert(sampleTrip)
         try container.mainContext.save()
         
         return container
@@ -29,5 +31,5 @@ struct SampleStopData: PreviewModifier {
 }
 
 extension PreviewTrait where T == Preview.ViewTraits {
-    @MainActor static var sampleStopData: Self = .modifier(SampleStopData())
+    @MainActor static var sampleData: Self = .modifier(SampleData())
 }

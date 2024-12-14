@@ -11,7 +11,9 @@ import MapKit
 struct OverviewMapButtonsView: View {
     @Environment(\.modelContext) private var context
 
-    @Bindable var foliData: FoliDataClass
+    let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
+    
     @Binding var mapCameraPosition: MapCameraPosition
     @Binding var selectedStop: StopData?
     
@@ -49,6 +51,7 @@ struct OverviewMapButtonsView: View {
             } label: {
                 Image(systemName: "location.fill")
             }
+            .disabled(!locationManager.isAuthorized)
             
             /*
             Spacer()
@@ -81,5 +84,5 @@ struct OverviewMapButtonsView: View {
 
 #Preview {
     let foliData = FoliDataClass()
-    OverviewMapButtonsView(foliData: foliData, mapCameraPosition: .constant(.region(foliData.fallbackLocation)), selectedStop: .constant(nil))
+    OverviewMapButtonsView(foliData: foliData, locationManager: LocationManagerClass(), mapCameraPosition: .constant(.region(foliData.fallbackLocation)), selectedStop: .constant(nil))
 }

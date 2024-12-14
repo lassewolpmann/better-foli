@@ -61,6 +61,6 @@ struct FavouritesView: View {
     }
 }
 
-#Preview(traits: .sampleStopData) {
+#Preview(traits: .sampleData) {
     FavouritesView(foliData: FoliDataClass())
 }

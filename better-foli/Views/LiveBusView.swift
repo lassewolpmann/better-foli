@@ -16,6 +16,8 @@ struct LiveBusView: View {
     @State private var vehicle: VehicleData?
     @State private var trip: TripData?
     
+    @Query var allTrips: [TripData]
+    
     var body: some View {
         if let vehicle, let trip {
             let mapCameraPosition: MapCameraPosition = .region(.init(center: vehicle.coords, span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))
@@ -27,7 +29,7 @@ struct LiveBusView: View {
                     do {
                         let allVehicles = try await foliData.getAllVehicles()
                         vehicle = allVehicles.first(where: { $0.vehicleID == upcomingBus.vehicleref })
-                        trip = foliData.allTrips.first(where: { $0.tripID == vehicle?.tripID })
+                        trip = allTrips.first(where: { $0.tripID == vehicle?.tripID })
                     } catch {
                         print(error)
                     }

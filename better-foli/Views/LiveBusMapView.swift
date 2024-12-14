@@ -20,6 +20,7 @@ struct LiveBusMapView: View {
     @State private var showTimetable: Bool = false
     
     @Environment(\.modelContext) private var context
+    @Query var allStops: [StopData]
     @Query var allShapes: [ShapeData]
     
     init(foliData: FoliDataClass, trip: TripData, mapCameraPosition: MapCameraPosition, vehicle: VehicleData) {
@@ -29,12 +30,10 @@ struct LiveBusMapView: View {
         self.vehicle = vehicle
         
         let shapeID = trip.shapeID
+        let allStopPointRefs = vehicle.onwardCalls.map { $0.stoppointref }
         
-        let predicate = #Predicate<ShapeData> {
-            $0.shapeID == shapeID
-        }
-        
-        _allShapes = Query(filter: predicate)
+        _allStops = Query(filter: #Predicate<StopData> { allStopPointRefs.contains($0.code) })
+        _allShapes = Query(filter: #Predicate<ShapeData> { $0.shapeID == shapeID })
     }
     
     var body: some View {
@@ -61,7 +60,7 @@ struct LiveBusMapView: View {
                 
                 
                 ForEach(vehicle.onwardCalls, id: \.stoppointref) { call in
-                    let stop = foliData.allStops.first { $0.code == call.stoppointref }
+                    let stop = allStops.first { $0.code == call.stoppointref }
                     
                     if let stop {
                         Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)

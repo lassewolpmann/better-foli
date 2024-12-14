@@ -16,7 +16,7 @@ struct better_foliApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(foliData: foliData, locationManager: locationManager, mapCameraPosition: .userLocation(fallback: .region(foliData.fallbackLocation)))
+            ContentView(foliData: foliData, locationManager: locationManager)
                 .modelContainer(for: [
                     StopData.self,
                     TripData.self,

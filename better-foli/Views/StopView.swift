@@ -21,7 +21,7 @@ struct StopView: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(detailedStop.result, id: \.__tripref) { upcomingBus in
+                        ForEach(detailedStop.result, id: \.self) { upcomingBus in
                             UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus)
                         }
                     }

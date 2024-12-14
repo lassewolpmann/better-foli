@@ -16,10 +16,12 @@ struct OverviewActualMapView: View {
     @State private var selectedStop: StopData?
     
     let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     let cameraRegion: MKCoordinateRegion
 
-    init(foliData: FoliDataClass, cameraRegion: MKCoordinateRegion) {
+    init(foliData: FoliDataClass, locationManager: LocationManagerClass, cameraRegion: MKCoordinateRegion) {
         self.foliData = foliData
+        self.locationManager = locationManager
         self.cameraRegion = cameraRegion
         
         let latitude = cameraRegion.center.latitude
@@ -59,11 +61,11 @@ struct OverviewActualMapView: View {
             StopView(foliData: foliData, stop: stop)
         }
         .safeAreaInset(edge: .top, content: {
-            OverviewMapButtonsView(foliData: foliData, mapCameraPosition: $mapCameraPosition, selectedStop: $selectedStop)
+            OverviewMapButtonsView(foliData: foliData, locationManager: locationManager, mapCameraPosition: $mapCameraPosition, selectedStop: $selectedStop)
         })
     }
 }
 
 #Preview {
-    OverviewActualMapView(foliData: FoliDataClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
+    OverviewActualMapView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
 }

@@ -14,7 +14,7 @@ struct SiriStop: Decodable {
 
 struct DetailedSiriStop: Decodable {
     // https://data.foli.fi/siri/sm/1/pretty
-    struct Result: Decodable {
+    struct Result: Decodable, Hashable {        
         var recordedattime: Int = 1733224527
         var monitored: Bool = true
         
@@ -42,8 +42,8 @@ struct DetailedSiriStop: Decodable {
         var delay: Int?
         var incongestion: Bool?
         
-        var __tripref: String = "00010105__10010f40100"
-        var __routeref: String = "1"
+        var __tripref: String? = "00010105__10010f40100"
+        var __routeref: String? = "1"
     }
     
     var status: String = ""

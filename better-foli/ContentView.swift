@@ -13,8 +13,6 @@ struct ContentView: View {
     let foliData: FoliDataClass
     let locationManager: LocationManagerClass
     
-    @State var mapCameraPosition: MapCameraPosition
-    
     @State private var selectedStop: StopData?
     
     @Environment(\.modelContext) private var context
@@ -83,8 +81,6 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    let foliData = FoliDataClass()
-    
-    ContentView(foliData: foliData, locationManager: LocationManagerClass(), mapCameraPosition: .region(foliData.fallbackLocation))
+#Preview(traits: .sampleData) {
+    ContentView(foliData: FoliDataClass(), locationManager: LocationManagerClass())
 }

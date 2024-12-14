@@ -17,7 +17,7 @@ struct OverviewMapView: View {
     
     var body: some View {
         MapReader { reader in
-            OverviewActualMapView(foliData: foliData, cameraRegion: cameraRegion)
+            OverviewActualMapView(foliData: foliData, locationManager: locationManager, cameraRegion: cameraRegion)
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             cameraRegion = context.region
