@@ -30,7 +30,6 @@ class FoliDataClass {
     func getAllStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
-        
         let gtfsStops = try JSONDecoder().decode([String: GtfsStop].self, from: data)
 
         return gtfsStops.map { stop in
@@ -64,5 +63,13 @@ class FoliDataClass {
         let (data, _) = try await URLSession.shared.data(from: url)
         let gtfsShapes = try JSONDecoder().decode([GtfsShape].self, from: data)
         return ShapeData(shapeID: shapeID, shapes: gtfsShapes)
+    }
+    
+    func getAllRoutes() async throws -> [RouteData] {
+        guard let url = URL(string: "\(baseURL)/gtfs/routes") else { return [] }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let gtfsRoutes = try JSONDecoder().decode([GtfsRoute].self, from: data)
+        
+        return gtfsRoutes.map { RouteData(route: $0) }
     }
 }

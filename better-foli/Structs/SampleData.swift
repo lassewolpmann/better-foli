@@ -32,7 +32,7 @@ let shapes: [GtfsShape] = [
 struct SampleData: PreviewModifier {
     static func makeSharedContext() throws -> ModelContainer {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: StopData.self, TripData.self, configurations: config)
+        let container = try ModelContainer(for: StopData.self, TripData.self, ShapeData.self, RouteData.self, configurations: config)
         
         for stop in stops {
             let stop = StopData(gtfsStop: stop)
@@ -45,6 +45,10 @@ struct SampleData: PreviewModifier {
         
         let sampleShape = ShapeData(shapeID: "434", shapes: shapes)
         container.mainContext.insert(sampleShape)
+        
+        let sampleRoute = RouteData(route: GtfsRoute(route_id: "1", route_short_name: "1", route_long_name: "Lentoasema-Satama"))
+        sampleRoute.isFavourite = true
+        container.mainContext.insert(sampleRoute)
         
         try container.mainContext.save()
         

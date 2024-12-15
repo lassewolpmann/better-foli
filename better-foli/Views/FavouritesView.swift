@@ -12,6 +12,7 @@ import MapKit
 struct FavouritesView: View {
     @Environment(\.modelContext) private var context
     @Query(filter: #Predicate<StopData> { $0.isFavourite }, sort: \.code) var favouriteStops: [StopData]
+    @Query(filter: #Predicate<RouteData> { $0.isFavourite }, sort: \.routeID) var favouriteRoutes: [RouteData]
     
     let foliData: FoliDataClass
     
@@ -31,7 +32,13 @@ struct FavouritesView: View {
                 }
                 
                 Section {
-                    
+                    ForEach(favouriteRoutes, id: \.routeID) { route in
+                        Label {
+                            Text(route.longName)
+                        } icon: {
+                            Text(route.shortName)
+                        }
+                    }
                 } header: {
                     Text("Bus Lines")
                 }

@@ -39,9 +39,9 @@ struct FoundStopsView: View {
 #Preview(traits: .sampleData) {
     NavigationStack {
         List {
-            FoundStopsView(foliData: FoliDataClass(), searchText: "")
+            FoundStopsView(foliData: FoliDataClass(), searchText: "Satama")
         }
         .navigationTitle("Search")
     }
-    .searchable(text: .constant(""))
+    .searchable(text: .constant("Satama"))
 }

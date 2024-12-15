@@ -10,22 +10,55 @@ import MapKit
 import SwiftData
 
 struct LiveBusView: View {
+    @Environment(\.modelContext) private var context
+    @Query var allTrips: [TripData]
+    @Query var routes: [RouteData]
+    
+    @State private var vehicle: VehicleData?
+    
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
     let selectedStopCode: String
     
-    @State private var vehicle: VehicleData?
-    
-    @Query var allTrips: [TripData]
+    var route: RouteData? { routes.first }
     
     var trip: TripData? {
         allTrips.first { $0.tripID == vehicle?.tripID }
     }
     
+    init(foliData: FoliDataClass, upcomingBus: DetailedSiriStop.Result, selectedStopCode: String) {
+        self.foliData = foliData
+        self.upcomingBus = upcomingBus
+        self.selectedStopCode = selectedStopCode
+        
+        let busRouteRef = upcomingBus.__routeref ?? ""
+        let predicate = #Predicate<RouteData> { route in
+            route.routeID == busRouteRef
+        }
+        _routes = Query(filter: predicate)
+    }
+    
     var body: some View {
-        if let vehicle {
+        if let vehicle, let route {
             let mapCameraPosition: MapCameraPosition = .region(.init(center: vehicle.coords, span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))
-            LiveBusMapView(foliData: foliData, selectedStopCode: selectedStopCode, trip: trip, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
+            
+            NavigationStack {
+                LiveBusMapView(foliData: foliData, selectedStopCode: selectedStopCode, trip: trip, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
+                    .navigationBarTitle("\(route.shortName) - \(route.longName)")
+                    .toolbar {
+                        Button {
+                            route.isFavourite.toggle()
+                            
+                            do {
+                                try context.save()
+                            } catch {
+                                print(error)
+                            }
+                        } label: {
+                            Image(systemName: route.isFavourite ? "star.fill" : "star")
+                        }
+                    }
+            }
         } else {
             ProgressView("Getting vehicle data...")
                 .task {

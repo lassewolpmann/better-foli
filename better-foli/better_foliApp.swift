@@ -20,7 +20,8 @@ struct better_foliApp: App {
                 .modelContainer(for: [
                     StopData.self,
                     TripData.self,
-                    ShapeData.self
+                    ShapeData.self,
+                    RouteData.self
                 ])
         }
     }

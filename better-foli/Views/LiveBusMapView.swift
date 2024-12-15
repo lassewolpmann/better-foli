@@ -92,67 +92,10 @@ struct LiveBusMapView: View {
                 }
             }
             .safeAreaInset(edge: .bottom, content: {
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        mapCameraPosition = .region(vehicle.region)
-                    } label: {
-                        Label {
-                            Text("Find Bus")
-                        } icon: {
-                            Image(systemName: "location.circle")
-                        }
-                    }
-                    
-                    Button {
-                        showTimetable.toggle()
-                    } label: {
-                        Label {
-                            Text("Timetable")
-                        } icon: {
-                            Image(systemName: "calendar")
-                        }
-                    }
-                    
-                    Spacer()
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.vertical, 15)
-                .background(.ultraThinMaterial)
+                LiveBusMapButtonsView(mapCameraPosition: $mapCameraPosition, showTimetable: $showTimetable, vehicle: vehicle)
             })
             .sheet(isPresented: $showTimetable, content: {
-                if (!vehicle.onwardCalls.isEmpty) {
-                    ScrollView {
-                        VStack(spacing: 10) {
-                            Label {
-                                Text("Upcoming Stops")
-                                    .font(.title)
-                            } icon: {
-                                Image(systemName: "parkingsign")
-                            }
-                            
-                            ForEach(vehicle.onwardCalls, id: \.stoppointref) { call in
-                                HStack(alignment: .center) {
-                                    Text(call.stoppointref)
-                                        .bold()
-                                        .frame(width: 75)
-                                    Text(call.stoppointname)
-                                    
-                                    Spacer()
-                                                                   
-                                    VStack {
-                                        ArrivalTimeView(aimedArrival: call.aimedarrivaltime, expectedArrival: call.expectedarrivaltime)
-                                        DepartureTimeView(aimedDeparture: call.aimeddeparturetime, expectedDeparture: call.expecteddeparturetime)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .padding(10)
-                    .presentationDetents([.medium])
-                    .presentationBackground(.regularMaterial)
-                }
+                LiveBusMapTimetableView(vehicle: vehicle)
             })
         }
     }

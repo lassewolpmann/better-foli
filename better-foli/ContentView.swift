@@ -13,12 +13,13 @@ struct ContentView: View {
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
     @Query var allTrips: [TripData]
+    @Query var allRoutes: [RouteData]
     
     let foliData: FoliDataClass
     let locationManager: LocationManagerClass
     
     var body: some View {
-        if (allStops.isEmpty || allTrips.isEmpty) {
+        if (allStops.isEmpty || allTrips.isEmpty || allRoutes.isEmpty) {
             ProgressView("Loading data...")
                 .task {
                     do {
@@ -36,6 +37,15 @@ struct ContentView: View {
                             let trips = try await foliData.getAllTrips()
                             for trip in trips {
                                 context.insert(trip)
+                            }
+                            try context.save()
+                        }
+                        
+                        if (allRoutes.isEmpty) {
+                            print("Loading all trips...")
+                            let routes = try await foliData.getAllRoutes()
+                            for route in routes {
+                                context.insert(route)
                             }
                             try context.save()
                         }
