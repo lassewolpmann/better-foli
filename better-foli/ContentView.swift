@@ -10,14 +10,12 @@ import MapKit
 import SwiftData
 
 struct ContentView: View {
-    let foliData: FoliDataClass
-    let locationManager: LocationManagerClass
-    
-    @State private var selectedStop: StopData?
-    
     @Environment(\.modelContext) private var context
     @Query var allStops: [StopData]
     @Query var allTrips: [TripData]
+    
+    let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     
     var body: some View {
         if (allStops.isEmpty || allTrips.isEmpty) {

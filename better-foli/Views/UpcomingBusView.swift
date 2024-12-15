@@ -12,6 +12,7 @@ import SwiftData
 struct UpcomingBusView: View {    
     let foliData: FoliDataClass
     let upcomingBus: DetailedSiriStop.Result
+    let selectedStopCode: String
     
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -21,7 +22,7 @@ struct UpcomingBusView: View {
             
             if (upcomingBus.monitored) {
                 NavigationLink {
-                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus)
+                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: selectedStopCode)
                 } label: {
                     Label {
                         Text(upcomingBus.destinationdisplay)
@@ -52,7 +53,7 @@ struct UpcomingBusView: View {
 
 #Preview {
     NavigationStack {
-        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result())
+        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result(recordedattime: 0, monitored: true, lineref: "1", destinationdisplay: "Satama"), selectedStopCode: "1")
     }
     .padding(10)
 }

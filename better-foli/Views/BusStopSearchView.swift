@@ -53,7 +53,7 @@ struct BusStopSearchView: View {
     }
 }
 
-#Preview {
+#Preview(traits: .sampleData) {
     let foliData = FoliDataClass()
     BusStopSearchView(searchFilter: "", mapCameraPosition: .constant(.userLocation(fallback: .region(foliData.fallbackLocation))), selectedStop: .constant(nil))
 }

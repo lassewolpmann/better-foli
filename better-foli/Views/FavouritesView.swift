@@ -11,7 +11,7 @@ import MapKit
 
 struct FavouritesView: View {
     @Environment(\.modelContext) private var context
-    @Query(filter: #Predicate<StopData> { $0.isFavourite }) var favouriteStops: [StopData]
+    @Query(filter: #Predicate<StopData> { $0.isFavourite }, sort: \.code) var favouriteStops: [StopData]
     
     let foliData: FoliDataClass
     
@@ -21,9 +21,9 @@ struct FavouritesView: View {
                 Section {
                     ForEach(favouriteStops, id: \.code) { stop in
                         NavigationLink {
-                            StopView(foliData: foliData, stop: stop)
+                            StopView(foliData: foliData, stopCode: stop.code)
                         } label: {
-                            StopListPreviewView(stop: stop)
+                            StopListPreviewView(stopCode: stop.code)
                         }
                     }
                 } header: {

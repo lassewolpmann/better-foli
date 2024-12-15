@@ -9,8 +9,8 @@ import Foundation
 
 struct GtfsStop: Decodable, Equatable {
     // https://data.foli.fi/doc/gtfs/v0/stops-en
-    var stop_code: String = "1"
-    var stop_name: String = "Turun satama (Silja)"
-    var stop_lat: Float = 60.43497
-    var stop_lon: Float = 22.21966
+    var stop_code: String
+    var stop_name: String
+    var stop_lat: Float
+    var stop_lon: Float
 }

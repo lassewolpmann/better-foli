@@ -19,22 +19,18 @@ struct FoundStopsView: View {
         self.searchText = searchText
         
         let predicate = #Predicate<StopData> { stop in
-            if (searchText.count < 3) {
-                return false
-            } else {
-                return stop.name.localizedStandardContains(searchText)
-            }
+            return stop.name.localizedStandardContains(searchText)
         }
         
-        _foundStops = Query(filter: predicate, sort: \.name)
+        _foundStops = Query(filter: predicate, sort: \.code)
     }
     
     var body: some View {
         ForEach(foundStops, id: \.code) { stop in
             NavigationLink {
-                StopView(foliData: foliData, stop: stop)
+                StopView(foliData: foliData, stopCode: stop.code)
             } label: {
-                StopListPreviewView(stop: stop)
+                StopListPreviewView(stopCode: stop.code)
             }
         }
     }

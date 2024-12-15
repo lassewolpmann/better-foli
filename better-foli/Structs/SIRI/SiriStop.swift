@@ -14,39 +14,39 @@ struct SiriStop: Decodable {
 
 struct DetailedSiriStop: Decodable {
     // https://data.foli.fi/siri/sm/1/pretty
-    struct Result: Decodable, Hashable {        
-        var recordedattime: Int = 1733224527
-        var monitored: Bool = true
+    struct Result: Decodable, Hashable {
+        var recordedattime: Int
+        var monitored: Bool
         
-        var lineref: String = "1"
-        var vehicleref: String? = "80026"
+        var lineref: String
+        var vehicleref: String?
         
-        var longitude: Double? = 22.26712
-        var latitude: Double? = 60.44932
+        var longitude: Double?
+        var latitude: Double?
         
-        var originaimedarrivaltime: Int? = 1733225340
-        var originaimeddeparturetime: Int? = 1733227800
+        var originaimedarrivaltime: Int?
+        var originaimeddeparturetime: Int?
         
-        var destinationdisplay: String = "Lentoasema"
+        var destinationdisplay: String
         var destinationdisplay_sv: String?
         var destinationdisplay_en: String?
         
-        var aimedarrivaltime: Int? = 1733225340
-        var expectedarrivaltime: Int? = 1733225340
+        var aimedarrivaltime: Int?
+        var expectedarrivaltime: Int?
 
-        var aimeddeparturetime: Int? = 1733225340
-        var expecteddeparturetime: Int? = 1733225340
+        var aimeddeparturetime: Int?
+        var expecteddeparturetime: Int?
         
-        var destinationaimedarrivaltime: Int? = 1733227800
+        var destinationaimedarrivaltime: Int?
 
         var delay: Int?
         var incongestion: Bool?
         
-        var __tripref: String? = "00010105__10010f40100"
-        var __routeref: String? = "1"
+        var __tripref: String?
+        var __routeref: String?
     }
     
-    var status: String = ""
-    var servertime: Int = 0
-    var result: [DetailedSiriStop.Result] = [DetailedSiriStop.Result()]
+    var status: String
+    var servertime: Int
+    var result: [DetailedSiriStop.Result]
 }

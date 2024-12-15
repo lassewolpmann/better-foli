@@ -12,17 +12,26 @@ struct StopView: View {
     @Environment(\.modelContext) private var context
 
     let foliData: FoliDataClass
-    let stop: StopData
+    let stopCode: String
     
     @State var detailedStop: DetailedSiriStop?
+    @Query var stops: [StopData]
+    var stop: StopData? { stops.first }
+    
+    init(foliData: FoliDataClass, stopCode: String) {
+        self.foliData = foliData
+        self.stopCode = stopCode
+        
+        _stops = Query(filter: #Predicate<StopData> { $0.code == stopCode })
+    }
     
     var body: some View {
-        if let detailedStop {
+        if let detailedStop, let stop {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(detailedStop.result, id: \.self) { upcomingBus in
-                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus)
+                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: stop.code)
                         }
                     }
                 }
@@ -50,6 +59,7 @@ struct StopView: View {
             ProgressView("Loading data...")
                 .task {
                     do {
+                        guard let stop else { return }
                         detailedStop = try await foliData.getSiriStopData(stop: stop)
                     } catch {
                         print(error)
@@ -59,6 +69,6 @@ struct StopView: View {
     }
 }
 
-#Preview {
-    StopView(foliData: FoliDataClass(), stop: StopData(gtfsStop: GtfsStop()))
+#Preview(traits: .sampleData) {
+    StopView(foliData: FoliDataClass(), stopCode: "1")
 }

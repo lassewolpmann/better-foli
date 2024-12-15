@@ -10,14 +10,14 @@ import MapKit
 import SwiftData
 
 struct OverviewMapView: View {
-    @State var cameraRegion: MKCoordinateRegion?
+    @State var cameraRegion: MKCoordinateRegion = .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span)
     
     let foliData: FoliDataClass
     let locationManager: LocationManagerClass
     
     var body: some View {
         MapReader { _ in
-            OverviewActualMapView(foliData: foliData, cameraRegion: cameraRegion ?? .init(center: foliData.fallbackLocation.center, span: foliData.fallbackLocation.span))
+            OverviewActualMapView(foliData: foliData, cameraRegion: cameraRegion)
         }
         .onMapCameraChange(frequency: .onEnd) { context in
             cameraRegion = context.region
