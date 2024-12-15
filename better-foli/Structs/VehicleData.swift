@@ -15,6 +15,7 @@ struct VehicleData {
     var onwardCalls: [SiriVehicleMonitoring.Result.Vehicle.OnwardCalls]
     var lineReference: String
     var destinationName: String
+    var monitored: Bool
     var latitude: Double
     var longitude: Double
     var coords: CLLocationCoordinate2D {
@@ -31,6 +32,7 @@ struct VehicleData {
         self.onwardCalls = vehicleData.onwardcalls ?? []
         self.lineReference = vehicleData.lineref ?? ""
         self.destinationName = vehicleData.destinationname ?? ""
+        self.monitored = vehicleData.monitored ?? false
         self.latitude = vehicleData.latitude ?? 0.0
         self.longitude = vehicleData.longitude ?? 0.0
     }

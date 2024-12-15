@@ -27,22 +27,23 @@ struct RouteOverviewBusRow: View {
     }
     
     var body: some View {
-        NavigationLink {
-            let mapCameraPosition: MapCameraPosition = .region(vehicle.region)
-            // LiveBusMapView(foliData: foliData, selectedStopCode: "", trip: trip, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
-            Text(vehicle.vehicleID)
-        } label: {
-            HStack {
-                Label {
-                    Text(vehicle.lineReference)
-                } icon: {
-                    Image(systemName: "bus")
+        if (vehicle.monitored) {
+            NavigationLink {
+                let mapCameraPosition: MapCameraPosition = .region(vehicle.region)
+                LiveBusMapView(foliData: foliData, selectedStopCode: "", trip: trip, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
+            } label: {
+                HStack {
+                    Label {
+                        Text(vehicle.lineReference)
+                    } icon: {
+                        Image(systemName: "bus")
+                    }
                 }
+                
+                Spacer()
+                
+                Text(vehicle.destinationName)
             }
-            
-            Spacer()
-            
-            Text(vehicle.destinationName)
         }
     }
 }
