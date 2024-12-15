@@ -30,8 +30,20 @@ struct StopView: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 10) {
-                        ForEach(detailedStop.result, id: \.self) { upcomingBus in
-                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: stop.code)
+                        if (detailedStop.result.isEmpty) {
+                            Label {
+                                Text("There are currently no buses scheduled for this stop.")
+                            } icon: {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundStyle(.yellow)
+                            }
+                            .font(.headline)
+                            .padding(10)
+                            .labelStyle(AlignedLabel())
+                        } else {
+                            ForEach(detailedStop.result, id: \.self) { upcomingBus in
+                                UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: stop.code)
+                            }
                         }
                     }
                 }
