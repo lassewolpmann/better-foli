@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 
 struct FoundLinesView: View {
-    @Environment(\.modelContext) private var context
     @Query var foundLines: [RouteData]
 
     let foliData: FoliDataClass
@@ -23,30 +22,18 @@ struct FoundLinesView: View {
             return route.longName.localizedStandardContains(searchText) || route.shortName.localizedStandardContains(searchText)
         }
         
-        _foundLines = Query(filter: predicate, sort: \.routeID)
+        _foundLines = Query(filter: predicate, sort: \.shortName)
     }
     
     var body: some View {
         ForEach(foundLines, id: \.routeID) { route in
-            HStack {
+            NavigationLink {
+                RouteOverviewView(foliData: foliData, routeID: route.routeID)
+            } label: {
                 Label {
                     Text(route.longName)
                 } icon: {
                     Text(route.shortName)
-                }
-                
-                Spacer()
-                
-                Button {
-                    route.isFavourite.toggle()
-                    
-                    do {
-                        try context.save()
-                    } catch {
-                        print(error)
-                    }
-                } label: {
-                    Image(systemName: route.isFavourite ? "star.fill" : "star")
                 }
             }
         }

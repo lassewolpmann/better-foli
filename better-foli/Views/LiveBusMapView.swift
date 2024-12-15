@@ -21,10 +21,9 @@ struct LiveBusMapView: View {
     @State private var showTimetable: Bool = false
     
     @Environment(\.modelContext) private var context
-    @Query var vehicleStops: [StopData]
     @Query var tripShape: [ShapeData]
-    @Query var allTrips: [TripData]
-    
+    @Query var vehicleStops: [StopData]
+
     var shapeCoords: [CLLocationCoordinate2D]? {
         tripShape.first?.locations.map { $0.coords }
     }
