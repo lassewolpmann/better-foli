@@ -28,9 +28,9 @@ struct FoundStopsView: View {
     var body: some View {
         ForEach(foundStops, id: \.code) { stop in
             NavigationLink {
-                StopView(foliData: foliData, stopCode: stop.code)
+                StopView(foliData: foliData, stop: stop)
             } label: {
-                StopListPreviewView(stopCode: stop.code)
+                StopListPreviewView(stop: stop)
             }
         }
     }

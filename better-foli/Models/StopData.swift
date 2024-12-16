@@ -11,7 +11,7 @@ import SwiftData
 
 @Model
 class StopData {
-    #Index<StopData>([\.latitude], [\.longitude], [\.name], [\.name, \.code])
+    #Index<StopData>([\.latitude], [\.longitude], [\.name], [\.code], [\.name, \.code])
 
     @Attribute(.unique) var code: String
     var name: String

@@ -22,7 +22,7 @@ struct better_foliApp: App {
                     TripData.self,
                     ShapeData.self,
                     RouteData.self
-                ])
+                ], isAutosaveEnabled: true)
         }
     }
 }

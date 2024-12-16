@@ -9,55 +9,39 @@ import SwiftUI
 import SwiftData
 
 struct StopView: View {
-    @Environment(\.modelContext) private var context
-
     let foliData: FoliDataClass
-    let stopCode: String
+    let stop: StopData
     
-    @State var detailedStop: DetailedSiriStop?
-    @Query var stops: [StopData]
-    var stop: StopData? { stops.first }
-    
-    init(foliData: FoliDataClass, stopCode: String) {
-        self.foliData = foliData
-        self.stopCode = stopCode
-        
-        _stops = Query(filter: #Predicate<StopData> { $0.code == stopCode })
-    }
+    @State private var upcomingBuses: [VehicleData]?
     
     var body: some View {
-        if let detailedStop, let stop {
+        if let upcomingBuses {
             NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        if (detailedStop.result.isEmpty) {
-                            Label {
-                                Text("There are currently no buses scheduled for this stop.")
-                            } icon: {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .foregroundStyle(.yellow)
-                            }
-                            .font(.headline)
-                            .padding(10)
-                            .labelStyle(AlignedLabel())
-                        } else {
-                            ForEach(detailedStop.result, id: \.self) { upcomingBus in
-                                UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: stop.code)
-                            }
+                List {
+                    if (upcomingBuses.isEmpty) {
+                        Label {
+                            Text("There are currently no buses scheduled for this stop.")
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundStyle(.yellow)
+                        }
+                        .font(.headline)
+                        .padding(10)
+                        .labelStyle(AlignedLabel())
+                    } else {
+                        ForEach(upcomingBuses.sorted {
+                            let a = $0.onwardCalls.first(where: { $0.stoppointref == stop.code})?.aimedarrivaltime ?? 0
+                            let b = $1.onwardCalls.first(where: { $0.stoppointref == stop.code})?.aimedarrivaltime ?? 0
+                            return a < b
+                        }, id: \.vehicleID) { upcomingBus in
+                            UpcomingBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: stop.code)
                         }
                     }
                 }
-                .padding(.horizontal, 10)
                 .navigationTitle("\(stop.name) - \(stop.code)")
                 .toolbar {
                     Button {
                         stop.isFavourite.toggle()
-                        
-                        do {
-                            try context.save()
-                        } catch {
-                            print(error)
-                        }
                     } label: {
                         Label {
                             Text("Save to Favourites")
@@ -71,8 +55,7 @@ struct StopView: View {
             ProgressView("Loading data...")
                 .task {
                     do {
-                        guard let stop else { return }
-                        detailedStop = try await foliData.getSiriStopData(stop: stop)
+                        upcomingBuses = try await foliData.getUpcomingBuses(stop: stop)
                     } catch {
                         print(error)
                     }
@@ -82,5 +65,5 @@ struct StopView: View {
 }
 
 #Preview(traits: .sampleData) {
-    StopView(foliData: FoliDataClass(), stopCode: "1")
+    StopView(foliData: FoliDataClass(), stop: StopData(gtfsStop: GtfsStop()))
 }

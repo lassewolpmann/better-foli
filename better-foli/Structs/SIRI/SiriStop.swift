@@ -15,10 +15,10 @@ struct SiriStop: Decodable {
 struct DetailedSiriStop: Decodable {
     // https://data.foli.fi/siri/sm/1/pretty
     struct Result: Decodable, Hashable {
-        var recordedattime: Int
-        var monitored: Bool
+        var recordedattime: Int = 0
+        var monitored: Bool = false
         
-        var lineref: String
+        var lineref: String = "1"
         var vehicleref: String?
         
         var longitude: Double?
@@ -46,7 +46,7 @@ struct DetailedSiriStop: Decodable {
         var __routeref: String?
     }
     
-    var status: String
-    var servertime: Int
-    var result: [DetailedSiriStop.Result]
+    var status: String = ""
+    var servertime: Int = 0
+    var result: [DetailedSiriStop.Result] = []
 }

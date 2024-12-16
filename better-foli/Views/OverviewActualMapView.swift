@@ -56,7 +56,7 @@ struct OverviewActualMapView: View {
             MapCompass()
         }
         .sheet(item: $selectedStop) { stop in
-            StopView(foliData: foliData, stopCode: stop.code)
+            StopView(foliData: foliData, stop: stop)
         }
     }
 }

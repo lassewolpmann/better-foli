@@ -14,61 +14,28 @@ struct LiveBusMapView: View {
 
     let foliData: FoliDataClass
     let selectedStopCode: String
-    let trip: TripData?
-
+    let trip: TripData
+    let vehicleStops: [StopData]
+    let shape: ShapeData?
+    
+    var shapeCoords: [CLLocationCoordinate2D]? {
+        shape?.locations.map { $0.coords }
+    }
+    
     @State var mapCameraPosition: MapCameraPosition
     @State var vehicle: VehicleData
     @State private var showTimetable: Bool = false
     
     @Environment(\.modelContext) private var context
-    @Query var tripShape: [ShapeData]
-    @Query var vehicleStops: [StopData]
-
-    var shapeCoords: [CLLocationCoordinate2D]? {
-        tripShape.first?.locations.map { $0.coords }
-    }
-    
-    init(foliData: FoliDataClass, selectedStopCode: String, trip: TripData?, mapCameraPosition: MapCameraPosition, vehicle: VehicleData) {
-        self.foliData = foliData
-        self.selectedStopCode = selectedStopCode
-        self.trip = trip
-        self.mapCameraPosition = mapCameraPosition
-        self.vehicle = vehicle
-                
-        let shapeID = trip?.shapeID ?? ""
-        _tripShape = Query(filter: #Predicate<ShapeData> { $0.shapeID == shapeID })
-        
-        let onwardCallStopCodes = vehicle.onwardCalls.map { $0.stoppointref }
-        
-        let predicate = #Predicate<StopData> { stop in
-            return onwardCallStopCodes.contains(stop.code)
-        }
-        
-        _vehicleStops = Query(filter: predicate)
-    }
     
     var body: some View {
-        if (tripShape.isEmpty) {
-            ProgressView("Loading trip...")
-                .task {
-                    do {
-                        guard let trip else { return }
-                        guard let shape = try await foliData.getShape(shapeID: trip.shapeID) else { return }
-                        context.insert(shape)
-                        try context.save()
-                    } catch {
-                        print(error)
-                    }
-                }
-        } else {
+        if let shapeCoords {
             Map(position: $mapCameraPosition) {
                 // Always show user location
                 UserAnnotation()
                 
-                if let shapeCoords {
-                    MapPolyline(coordinates: shapeCoords, contourStyle: .straight)
-                        .stroke(.orange.opacity(0.8), lineWidth: 3)
-                }
+                MapPolyline(coordinates: shapeCoords, contourStyle: .straight)
+                    .stroke(.orange.opacity(0.8), lineWidth: 3)
                 
                 
                 ForEach(vehicleStops, id: \.code) { stop in
@@ -96,11 +63,21 @@ struct LiveBusMapView: View {
             .sheet(isPresented: $showTimetable, content: {
                 LiveBusMapTimetableView(vehicle: vehicle)
             })
+        } else {
+            ProgressView("Loading trip...")
+                .task {
+                    do {
+                        guard let shape = try await foliData.getShape(shapeID: trip.shapeID) else { return }
+                        context.insert(shape)
+                    } catch {
+                        print(error)
+                    }
+                }
         }
     }
 }
 
 #Preview(traits: .sampleData) {
     let foliData = FoliDataClass()
-    LiveBusMapView(foliData: FoliDataClass(), selectedStopCode: "1", trip: nil, mapCameraPosition: .region(foliData.fallbackLocation), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+    LiveBusMapView(foliData: FoliDataClass(), selectedStopCode: "1", trip: TripData(trip: GtfsTrip()), vehicleStops: [StopData(gtfsStop: GtfsStop())], shape: ShapeData(shapeID: "434", shapes: [GtfsShape()]), mapCameraPosition: .region(foliData.fallbackLocation), vehicle: VehicleData(vehicleKey: "80051", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
 }

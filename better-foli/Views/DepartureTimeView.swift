@@ -20,7 +20,7 @@ struct DepartureTimeView: View {
             HStack(alignment: .top, spacing: 2) {
                 Text(aimedDate, style: .time)
                 Text("\(delay >= 0 ? "+" : "")\(delay)")
-                    .foregroundStyle(delay > 0 ? .red : .primary)
+                    .foregroundStyle(delay > 0 ? .red : .green)
                     .font(.footnote)
             }
         } icon: {

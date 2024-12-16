@@ -22,11 +22,12 @@ struct FavouritesView: View {
                 Section {
                     ForEach(favouriteStops, id: \.code) { stop in
                         NavigationLink {
-                            StopView(foliData: foliData, stopCode: stop.code)
+                            StopView(foliData: foliData, stop: stop)
                         } label: {
-                            StopListPreviewView(stopCode: stop.code)
+                            StopListPreviewView(stop: stop)
                         }
                     }
+                    .onDelete(perform: deleteFavouriteStop)
                 } header: {
                     Text("Bus Stops")
                 }
@@ -34,7 +35,7 @@ struct FavouritesView: View {
                 Section {
                     ForEach(favouriteRoutes, id: \.routeID) { route in
                         NavigationLink {
-                            RouteOverviewView(foliData: foliData, routeID: route.routeID)
+                            RouteOverviewView(foliData: foliData, route: route)
                         } label: {
                             Label {
                                 Text(route.longName)
@@ -43,11 +44,27 @@ struct FavouritesView: View {
                             }
                         }
                     }
+                    .onDelete(perform: deleteFavouriteLine)
                 } header: {
                     Text("Bus Lines")
                 }
             }
+            .toolbar {
+                EditButton()
+            }
             .navigationTitle("Favourites")
+        }
+    }
+    
+    func deleteFavouriteStop(at offsets: IndexSet) {
+        for offset in offsets {
+            favouriteStops[offset].isFavourite.toggle()
+        }
+    }
+    
+    func deleteFavouriteLine(at offsets: IndexSet) {
+        for offset in offsets {
+            favouriteRoutes[offset].isFavourite.toggle()
         }
     }
 }

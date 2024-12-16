@@ -8,7 +8,7 @@
 import Foundation
 
 struct GtfsShape: Decodable {
-    var lat: Double
-    var lon: Double
-    var traveled: Int
+    var lat: Double = 60.51109
+    var lon: Double = 22.27422
+    var traveled: Int = 0
 }

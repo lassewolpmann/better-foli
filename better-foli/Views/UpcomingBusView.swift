@@ -9,51 +9,70 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-struct UpcomingBusView: View {    
+struct UpcomingBusView: View {
+    @Query var busRoutes: [RouteData]
+    @Query var busTrips: [TripData]
+    
+    var busRoute: RouteData? { busRoutes.first }
+    var busTrip: TripData? { busTrips.first }
+    
     let foliData: FoliDataClass
-    let upcomingBus: DetailedSiriStop.Result
+    let upcomingBus: VehicleData
     let selectedStopCode: String
     
+    init(foliData: FoliDataClass, upcomingBus: VehicleData, selectedStopCode: String) {
+        self.foliData = foliData
+        self.upcomingBus = upcomingBus
+        self.selectedStopCode = selectedStopCode
+        
+        let busRouteID = upcomingBus.routeID
+        let busTripID = upcomingBus.tripID
+        
+        _busRoutes = Query(filter: #Predicate<RouteData> { $0.routeID == busRouteID })
+        _busTrips = Query(filter: #Predicate<TripData> { $0.tripID == busTripID })
+    }
+    
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Text(upcomingBus.lineref)
-                .bold()
-                .frame(width: 50)
-            
-            if (upcomingBus.monitored) {
-                NavigationLink {
-                    LiveBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: selectedStopCode)
-                } label: {
+        if let stop = upcomingBus.onwardCalls.first(where: { $0.stoppointref == selectedStopCode }), let busRoute, let busTrip {
+            NavigationLink {
+                LiveBusView(foliData: foliData, upcomingBus: upcomingBus, selectedStopCode: selectedStopCode, route: busRoute, trip: busTrip)
+            } label: {
+                HStack(alignment: .center, spacing: 10) {
+                    Text(upcomingBus.lineReference)
+                        .bold()
+                        .frame(width: 50)
+                    
                     Label {
-                        Text(upcomingBus.destinationdisplay)
+                        Text(upcomingBus.destinationName)
                     } icon: {
                         Image(systemName: "location.circle.fill")
                             .foregroundStyle(.orange)
                     }
                     .labelStyle(AlignedLabel())
+                    
+                    Spacer()
+                    
+                    VStack {
+                        let aimedArrival = stop.aimedarrivaltime
+                        let expectedArrival = stop.expectedarrivaltime
+                        ArrivalTimeView(aimedArrival: aimedArrival, expectedArrival: expectedArrival)
+                        
+                        
+                        let aimedDeparture = stop.aimeddeparturetime
+                        let expectedDeparture = stop.expecteddeparturetime
+                        DepartureTimeView(aimedDeparture: aimedDeparture, expectedDeparture: expectedDeparture)
+                    }
+                    .font(.subheadline)
                 }
-            } else {
-                Text(upcomingBus.destinationdisplay)
             }
-            
-            Spacer()
-            
-            VStack {
-                if let aimedArrival = upcomingBus.aimedarrivaltime, let expectedArrival = upcomingBus.expectedarrivaltime {
-                    ArrivalTimeView(aimedArrival: aimedArrival, expectedArrival: expectedArrival)
-                }
-                
-                if let aimedDeparture = upcomingBus.aimeddeparturetime, let expectedDeparture = upcomingBus.expecteddeparturetime {
-                    DepartureTimeView(aimedDeparture: aimedDeparture, expectedDeparture: expectedDeparture)
-                }
-            }
+            .disabled(!upcomingBus.monitored)
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: DetailedSiriStop.Result(recordedattime: 0, monitored: true, lineref: "1", destinationdisplay: "Satama"), selectedStopCode: "1")
+        UpcomingBusView(foliData: FoliDataClass(), upcomingBus: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()), selectedStopCode: "1")
     }
     .padding(10)
 }

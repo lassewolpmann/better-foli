@@ -10,64 +10,57 @@ import SwiftData
 import MapKit
 
 struct RouteOverviewView: View {
-    @Environment(\.modelContext) private var context
-    @Query var routes: [RouteData]
-    var route: RouteData? { routes.first }
-    
-    @State var busesOnThisRoute: [VehicleData] = []
+    @Query var tripsOnRoute: [TripData]
+    @State private var busesOnThisRoute: [VehicleData]?
     
     let foliData: FoliDataClass
-    let routeID: String
+    let route: RouteData
     
-    init(foliData: FoliDataClass, routeID: String) {
+    init(foliData: FoliDataClass, route: RouteData) {
         self.foliData = foliData
-        self.routeID = routeID
+        self.route = route
         
-        _routes = Query(filter: #Predicate<RouteData> { $0.routeID == routeID })
+        let routeID = route.routeID
+        
+        let predicate = #Predicate<TripData> { $0.routeID == routeID }
+        _tripsOnRoute = Query(filter: predicate)
     }
-
+    
     var body: some View {
-        if (busesOnThisRoute.isEmpty) {
+        if let busesOnThisRoute {
+            List {
+                Section {
+                    ForEach(busesOnThisRoute, id: \.vehicleID) { vehicle in
+                        if let trip = tripsOnRoute.first(where: { $0.tripID == vehicle.tripID }) {
+                            RouteOverviewBusRow(foliData: foliData, trip: trip, route: route, vehicle: vehicle)
+                        }
+                    }
+                } header: {
+                    Text("Active Buses on this Line")
+                }
+            }
+            .toolbar {
+                Button {
+                    route.isFavourite.toggle()
+                } label: {
+                    Image(systemName: route.isFavourite ? "star.fill": "star")
+                }
+            }
+        } else {
             ProgressView("Loading buses on this route...")
                 .task {
+                    let tripIDs = tripsOnRoute.map { $0.tripID }
                     do {
                         let vehicles = try await foliData.getAllVehicles()
-                        busesOnThisRoute = vehicles.filter { $0.routeID == routeID }
+                        busesOnThisRoute = vehicles.filter { tripIDs.contains($0.tripID) && $0.monitored }
                     } catch {
                         print(error)
                     }
                 }
-        } else {
-            NavigationStack {
-                List {
-                    Section {
-                        ForEach(busesOnThisRoute, id: \.vehicleID) { vehicle in
-                            RouteOverviewBusRow(foliData: foliData, vehicle: vehicle)
-                        }
-                    } header: {
-                        Text("Buses on this Line")
-                    }
-                }
-                .toolbar {
-                    if let route {
-                        Button {
-                            route.isFavourite.toggle()
-                            
-                            do {
-                                try context.save()
-                            } catch {
-                                print(error)
-                            }
-                        } label: {
-                            Image(systemName: route.isFavourite ? "star.fill": "star")
-                        }
-                    }
-                }
-            }
         }
     }
 }
 
-#Preview {
-    RouteOverviewView(foliData: FoliDataClass(), routeID: "1")
+#Preview(traits: .sampleData) {
+    RouteOverviewView(foliData: FoliDataClass(), route: RouteData(route: GtfsRoute()))
 }

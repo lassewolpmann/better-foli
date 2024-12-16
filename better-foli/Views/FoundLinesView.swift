@@ -28,7 +28,7 @@ struct FoundLinesView: View {
     var body: some View {
         ForEach(foundLines, id: \.routeID) { route in
             NavigationLink {
-                RouteOverviewView(foliData: foliData, routeID: route.routeID)
+                RouteOverviewView(foliData: foliData, route: route)
             } label: {
                 Label {
                     Text(route.longName)

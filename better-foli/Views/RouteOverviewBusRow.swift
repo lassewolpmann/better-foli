@@ -2,52 +2,44 @@
 //  RouteOverviewBusRow.swift
 //  better-foli
 //
-//  Created by Lasse Wolpmann on 15.12.2024.
+//  Created by Lasse Wolpmann on 16.12.2024.
 //
 
 import SwiftUI
-import SwiftData
-import MapKit
 
 struct RouteOverviewBusRow: View {
-    @Query var trips: [TripData]
-    var trip: TripData? { trips.first }
-    
     let foliData: FoliDataClass
+    let trip: TripData
+    let route: RouteData
     let vehicle: VehicleData
     
-    init(foliData: FoliDataClass, vehicle: VehicleData) {
-        self.foliData = foliData
-        self.vehicle = vehicle
-        
-        let vehicleTripID = vehicle.tripID
-        let predicate = #Predicate<TripData> { $0.tripID == vehicleTripID }
-        
-        _trips = Query(filter: predicate)
-    }
-    
     var body: some View {
-        if (vehicle.monitored) {
-            NavigationLink {
-                let mapCameraPosition: MapCameraPosition = .region(vehicle.region)
-                LiveBusMapView(foliData: foliData, selectedStopCode: "", trip: trip, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
-            } label: {
-                HStack {
+        HStack(alignment: .center, spacing: 10) {
+            Text(vehicle.lineReference)
+                .bold()
+                .frame(width: 50)
+            
+            if (vehicle.monitored) {
+                NavigationLink {
+                    LiveBusView(foliData: foliData, upcomingBus: vehicle, selectedStopCode: "", route: route, trip: trip)
+                } label: {
                     Label {
-                        Text(vehicle.lineReference)
+                        Text(vehicle.destinationName)
                     } icon: {
-                        Image(systemName: "bus")
+                        Image(systemName: "location.circle.fill")
+                            .foregroundStyle(.orange)
                     }
+                    .labelStyle(AlignedLabel())
                 }
-                
-                Spacer()
-                
+            } else {
                 Text(vehicle.destinationName)
             }
+            
+            Spacer()
         }
     }
 }
 
 #Preview {
-    RouteOverviewBusRow(foliData: FoliDataClass(), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+    RouteOverviewBusRow(foliData: FoliDataClass(), trip: TripData(trip: GtfsTrip()), route: RouteData(route: GtfsRoute()), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
 }

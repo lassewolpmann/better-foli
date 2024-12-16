@@ -14,19 +14,6 @@ class FoliDataClass {
     let baseURL = "https://data.foli.fi"
     let fallbackLocation = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 60.451201, longitude: 22.263379), span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
     
-    /*
-    var searchFilter = ""
-    
-    var searchFilteredStops: [StopData] {
-        allStops.filter { stop in
-            if (searchFilter == "") { return false }
-            if (searchFilter.count < 3) { return false }
-            
-            return stop.name.lowercased().contains(searchFilter.lowercased())
-        }
-    }
-     */
-    
     func getAllStops() async throws -> [StopData] {
         guard let url = URL(string: "\(baseURL)/gtfs/stops") else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
@@ -41,6 +28,19 @@ class FoliDataClass {
         guard let url = URL(string: "\(baseURL)/siri/stops/\(stop.code)") else { return nil }
         let (data, _) = try await URLSession.shared.data(from: url)
         return try JSONDecoder().decode(DetailedSiriStop.self, from: data)
+    }
+    
+    func getUpcomingBuses(stop: StopData) async throws -> [VehicleData] {
+        guard let url = URL(string: "\(baseURL)/siri/stops/\(stop.code)") else { return [] }
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let stopData = try JSONDecoder().decode(DetailedSiriStop.self, from: data)
+        let buses = stopData.result
+        let busVehicleIDs = buses.map { $0.vehicleref }
+        
+        let allVehicles = try await self.getAllVehicles()
+        return allVehicles.filter { vehicle in
+            return busVehicleIDs.contains(vehicle.vehicleID)
+        }
     }
     
     func getAllVehicles() async throws -> [VehicleData] {
