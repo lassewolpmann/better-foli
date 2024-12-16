@@ -42,13 +42,7 @@ struct UpcomingBusView: View {
                         .bold()
                         .frame(width: 50)
                     
-                    Label {
-                        Text(upcomingBus.destinationName)
-                    } icon: {
-                        Image(systemName: "location.circle.fill")
-                            .foregroundStyle(.orange)
-                    }
-                    .labelStyle(AlignedLabel())
+                    Text(upcomingBus.destinationName)
                     
                     Spacer()
                     
@@ -62,7 +56,6 @@ struct UpcomingBusView: View {
                         let expectedDeparture = stop.expecteddeparturetime
                         DepartureTimeView(aimedDeparture: aimedDeparture, expectedDeparture: expectedDeparture)
                     }
-                    .font(.subheadline)
                 }
             }
             .disabled(!upcomingBus.monitored)

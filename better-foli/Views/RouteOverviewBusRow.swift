@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct RouteOverviewBusRow: View {
     let foliData: FoliDataClass
@@ -14,32 +15,35 @@ struct RouteOverviewBusRow: View {
     let vehicle: VehicleData
     
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            Text(vehicle.lineReference)
-                .bold()
-                .frame(width: 50)
-            
-            if (vehicle.monitored) {
-                NavigationLink {
-                    LiveBusView(foliData: foliData, upcomingBus: vehicle, selectedStopCode: "", route: route, trip: trip)
-                } label: {
-                    Label {
-                        Text(vehicle.destinationName)
-                    } icon: {
-                        Image(systemName: "location.circle.fill")
-                            .foregroundStyle(.orange)
-                    }
-                    .labelStyle(AlignedLabel())
+        NavigationLink {
+            LiveBusView(foliData: foliData, upcomingBus: vehicle, selectedStopCode: "", route: route, trip: trip)
+        } label: {
+            HStack(alignment: .center) {
+                Map(initialPosition: .camera(.init(centerCoordinate: vehicle.coords, distance: 15000))) {
+                    Marker(vehicle.lineReference, systemImage: "bus", coordinate: vehicle.coords)
+                        .tint(.orange)
+                        .annotationTitles(.hidden)
                 }
-            } else {
+                .disabled(true)
+                .frame(width: 75, height: 75)
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .shadow(radius: 5)
+                
+                Text(vehicle.lineReference)
+                    .bold()
+                    .frame(width: 50)
+                
                 Text(vehicle.destinationName)
             }
-            
-            Spacer()
         }
+        .disabled(!vehicle.monitored)
     }
 }
 
 #Preview {
-    RouteOverviewBusRow(foliData: FoliDataClass(), trip: TripData(trip: GtfsTrip()), route: RouteData(route: GtfsRoute()), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+    NavigationStack {
+        List {
+            RouteOverviewBusRow(foliData: FoliDataClass(), trip: TripData(trip: GtfsTrip()), route: RouteData(route: GtfsRoute()), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+        }
+    }
 }

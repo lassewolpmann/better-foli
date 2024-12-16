@@ -13,23 +13,20 @@ struct StopListPreviewView: View {
     let stop: StopData
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack {
             Map(initialPosition: .camera(.init(centerCoordinate: stop.coords, distance: 1500))) {
                 Marker(stop.name, systemImage: "parkingsign", coordinate: stop.coords)
                     .tint(.orange)
                     .annotationTitles(.hidden)
             }
             .disabled(true)
-            .frame(width: 50, height: 75)
+            .frame(width: 75, height: 75)
             .clipShape(RoundedRectangle(cornerRadius: 5))
             .shadow(radius: 5)
             
             Text(stop.code)
-                .font(.subheadline)
-                .frame(width: 50, height: 25)
-                .background {
-                    RoundedRectangle(cornerRadius: 5).fill(.orange)
-                }
+                .bold()
+                .frame(width: 50)
             
             Text(stop.name)
         }
