@@ -49,12 +49,11 @@ struct UpcomingBusView: View {
                     VStack {
                         let aimedArrival = stop.aimedarrivaltime
                         let expectedArrival = stop.expectedarrivaltime
-                        ArrivalTimeView(aimedArrival: aimedArrival, expectedArrival: expectedArrival)
-                        
+                        BusTimeView(aimedTime: aimedArrival, expectedTime: expectedArrival, image: "arrow.right")
                         
                         let aimedDeparture = stop.aimeddeparturetime
                         let expectedDeparture = stop.expecteddeparturetime
-                        DepartureTimeView(aimedDeparture: aimedDeparture, expectedDeparture: expectedDeparture)
+                        BusTimeView(aimedTime: aimedDeparture, expectedTime: expectedDeparture, image: "arrow.left")
                     }
                 }
             }

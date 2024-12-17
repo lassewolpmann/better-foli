@@ -78,10 +78,10 @@ struct ContentView: View {
                 }
                 
                 Tab {
-                    OverviewMapView(foliData: foliData, locationManager: locationManager)
+                    AllStopsView(foliData: foliData, locationManager: locationManager)
                 } label: {
                     Label {
-                        Text("Stop Map")
+                        Text("All Stops")
                     } icon: {
                         Image(systemName: "map")
                     }

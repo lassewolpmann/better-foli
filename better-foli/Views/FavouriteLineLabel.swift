@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FavouriteLineLabel: View {
-    @State private var customLabelText: String = ""
+    @State var customLabelText: String
     
     let route: RouteData
     let editMode: EditMode
@@ -40,7 +40,11 @@ struct FavouriteLineLabel: View {
 }
 
 #Preview {
-    List {
-        FavouriteLineLabel(route: RouteData(route: GtfsRoute()), editMode: .active)
+    let route = RouteData(route: GtfsRoute())
+    NavigationStack {
+        List {
+            FavouriteLineLabel(customLabelText: route.customLabel, route: route, editMode: .active)
+        }
+        .navigationTitle("Favourites")
     }
 }

@@ -7,13 +7,14 @@
 
 import SwiftUI
 
-struct DepartureTimeView: View {
-    let aimedDeparture: Int
-    let expectedDeparture: Int
+struct BusTimeView: View {
+    let aimedTime: Int
+    let expectedTime: Int
+    let image: String
     
     var body: some View {
-        let aimedDate = Date(timeIntervalSince1970: TimeInterval(aimedDeparture))
-        let expectedDate = Date(timeIntervalSince1970: TimeInterval(expectedDeparture))
+        let aimedDate = Date(timeIntervalSince1970: TimeInterval(aimedTime))
+        let expectedDate = Date(timeIntervalSince1970: TimeInterval(expectedTime))
         let delay = Int(floor(expectedDate.timeIntervalSince(aimedDate) / 60))
         
         Label {
@@ -24,7 +25,7 @@ struct DepartureTimeView: View {
                     .font(.footnote)
             }
         } icon: {
-            Image(systemName: "arrow.left")
+            Image(systemName: image)
         }
         .labelStyle(AlignedLabel())
     }
@@ -32,5 +33,5 @@ struct DepartureTimeView: View {
 
 #Preview {
     let timestamp = Int(Date.now.timeIntervalSince1970)
-    DepartureTimeView(aimedDeparture: timestamp, expectedDeparture: timestamp + 120)
+    BusTimeView(aimedTime: timestamp, expectedTime: timestamp + 120, image: "arrow.left")
 }

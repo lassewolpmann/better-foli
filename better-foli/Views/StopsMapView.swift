@@ -9,7 +9,7 @@ import SwiftUI
 import MapKit
 import SwiftData
 
-struct OverviewActualMapView: View {
+struct StopsMapView: View {
     @Query var allStops: [StopData]
     @State private var selectedStop: StopData?
     @State private var annotationSize: Double = 0.0
@@ -84,5 +84,5 @@ struct OverviewActualMapView: View {
 }
 
 #Preview(traits: .sampleData) {
-    OverviewActualMapView(foliData: FoliDataClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
+    StopsMapView(foliData: FoliDataClass(), cameraRegion: .init(center: FoliDataClass().fallbackLocation.center, span: FoliDataClass().fallbackLocation.span))
 }

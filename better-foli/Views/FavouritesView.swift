@@ -41,10 +41,10 @@ struct FavouritesView: View {
                             NavigationLink {
                                 RouteOverviewView(foliData: foliData, route: route)
                             } label: {
-                                FavouriteLineLabel(route: route, editMode: editMode)
+                                FavouriteLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
                             }
                         } else if (editMode == .active) {
-                            FavouriteLineLabel(route: route, editMode: editMode)
+                            FavouriteLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
                         }
                     }
                     .onDelete(perform: deleteFavouriteLine)
@@ -53,11 +53,10 @@ struct FavouritesView: View {
                 }
             }
             .toolbar {
-                // EditButton()
                 Button {
                     editMode = editMode == .active ? .inactive : .active
                 } label: {
-                    Text("Edit")
+                    Text(editMode == .active ? "Done" : "Edit")
                 }
             }
             .animation(.easeInOut(duration: 0.1), value: editMode)

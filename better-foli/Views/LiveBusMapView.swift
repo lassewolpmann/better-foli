@@ -63,10 +63,55 @@ struct LiveBusMapView: View {
             }
             .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
             .safeAreaInset(edge: .bottom, content: {
-                LiveBusMapButtonsView(mapCameraPosition: $mapCameraPosition, showTimetable: $showTimetable, vehicle: vehicle)
+                HStack {
+                    Spacer()
+                    
+                    VStack(alignment: .trailing) {
+                        Button {
+                            mapCameraPosition = .region(vehicle.region)
+                        } label: {
+                            Label {
+                                Text("Bus")
+                            } icon: {
+                                Image(systemName: "location.circle")
+                            }
+                        }
+                        
+                        Button {
+                            showTimetable.toggle()
+                        } label: {
+                            Label {
+                                Text("Stops")
+                            } icon: {
+                                Image(systemName: "calendar")
+                            }
+                        }
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(15)
             })
             .sheet(isPresented: $showTimetable, content: {
-                LiveBusMapTimetableView(vehicle: vehicle)
+                // LiveBusMapTimetableView(vehicle: vehicle)
+                NavigationStack {
+                    List(vehicle.onwardCalls, id: \.stoppointref) { call in
+                        HStack(alignment: .center) {
+                            Text(call.stoppointref)
+                                .bold()
+                                .frame(width: 75)
+                            Text(call.stoppointname)
+                            
+                            Spacer()
+                            
+                            VStack {
+                                BusTimeView(aimedTime: call.aimedarrivaltime, expectedTime: call.expectedarrivaltime, image: "arrow.right")
+                                BusTimeView(aimedTime: call.aimeddeparturetime, expectedTime: call.expecteddeparturetime, image: "arrow.left")
+                            }
+                        }
+                    }
+                    .navigationTitle("Upcoming Stops")
+                }
+                .presentationDetents([.medium])
             })
         } else {
             ProgressView("Loading trip...")
