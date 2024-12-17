@@ -9,14 +9,24 @@ import SwiftUI
 import MapKit
 import SwiftData
 
+enum VehicleFetchError: Error {
+    case noVehicle
+}
+
 struct LiveBusView: View {
     @Query var tripShapes: [ShapeData]
-    @Query var vehicleStops: [StopData]
-    
+    @Query var allVehicleStops: [StopData]
+    @State var vehicle: VehicleData
+    var vehicleStops: [StopData] {
+        let onwardCallStopCodes = vehicle.onwardCalls.map { $0.stoppointref }
+        return allVehicleStops.filter({ onwardCallStopCodes.contains($0.code) })
+    }
+
     var tripShape: ShapeData? { tripShapes.first }
-        
+    
+    let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    
     let foliData: FoliDataClass
-    let vehicle: VehicleData
     let selectedStopCode: String
     let route: RouteData
     let trip: TripData
@@ -37,13 +47,13 @@ struct LiveBusView: View {
             return onwardCallStopCodes.contains(stop.code)
         }
         
-        _vehicleStops = Query(filter: predicate)
+        _allVehicleStops = Query(filter: predicate)
     }
     
     var body: some View {
         let mapCameraPosition: MapCameraPosition = .region(.init(center: vehicle.coords, span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))
         
-        LiveBusMapView(foliData: foliData, selectedStopCode: selectedStopCode, trip: trip, vehicleStops: vehicleStops, shape: tripShape, mapCameraPosition: mapCameraPosition, vehicle: vehicle)
+        LiveBusMapView(foliData: foliData, selectedStopCode: selectedStopCode, trip: trip, vehicle: vehicle, vehicleStops: vehicleStops, shape: tripShape, mapCameraPosition: mapCameraPosition)
             .navigationBarTitle("\(route.shortName) - \(route.longName)")
             .toolbar {
                 Button {
@@ -52,6 +62,28 @@ struct LiveBusView: View {
                     Image(systemName: route.isFavourite ? "star.fill" : "star")
                 }
             }
+            .task {
+                do {
+                    vehicle = try await getVehicle()
+                } catch {
+                    print(error)
+                }
+            }
+            .onReceive(timer) { _ in
+                Task {
+                    do {
+                        vehicle = try await getVehicle()
+                    } catch {
+                        print(error)
+                    }
+                }
+            }
+    }
+    
+    func getVehicle() async throws -> VehicleData {
+        let allVehicles = try await foliData.getAllVehicles()
+        guard let newVehicle = allVehicles.first(where: { $0.vehicleID == vehicle.vehicleID }) else { throw VehicleFetchError.noVehicle }
+        return newVehicle
     }
 }
 

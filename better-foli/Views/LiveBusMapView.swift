@@ -10,11 +10,10 @@ import MapKit
 import SwiftData
 
 struct LiveBusMapView: View {
-    let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
-
     let foliData: FoliDataClass
     let selectedStopCode: String
     let trip: TripData
+    let vehicle: VehicleData
     let vehicleStops: [StopData]
     let shape: ShapeData?
     
@@ -23,7 +22,6 @@ struct LiveBusMapView: View {
     }
     
     @State var mapCameraPosition: MapCameraPosition
-    @State var vehicle: VehicleData
     @State private var showTimetable: Bool = false
     
     @Environment(\.modelContext) private var context
@@ -39,24 +37,31 @@ struct LiveBusMapView: View {
                 
                 
                 ForEach(vehicleStops, id: \.code) { stop in
-                    Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "parkingsign", coordinate: stop.coords)
-                        .tint(stop.code == selectedStopCode ? .green : .orange)
-                }
-                
-                Marker(vehicle.lineReference, systemImage: "bus", coordinate: vehicle.coords)
-            }
-            .onReceive(timer) { _ in
-                print("Updating vehicle...")
-                Task {
-                    do {
-                        let allVehicles = try await foliData.getAllVehicles()
-                        guard let newVehicle = allVehicles.first(where: { $0.vehicleID == vehicle.vehicleID }) else { return }
-                        vehicle = newVehicle
-                    } catch {
-                        print(error)
+                    Annotation(coordinate: stop.coords) {
+                        Circle()
+                            .fill(stop.code == selectedStopCode ? .white : .orange)
+                            .stroke(.orange, lineWidth: 1)
+                            .shadow(radius: 2)
+                    } label: {
+                        Text(stop.name)
                     }
                 }
+                
+                Annotation(coordinate: vehicle.coords) {
+                    Image(systemName: "bus")
+                        .foregroundStyle(.orange)
+                        .padding(5)
+                        .background (
+                            Circle()
+                                .fill(.white)
+                                .stroke(.orange, lineWidth: 1)
+                                .shadow(radius: 2)
+                        )
+                } label: {
+                    Text(vehicle.lineReference)
+                }
             }
+            .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
             .safeAreaInset(edge: .bottom, content: {
                 LiveBusMapButtonsView(mapCameraPosition: $mapCameraPosition, showTimetable: $showTimetable, vehicle: vehicle)
             })
@@ -78,6 +83,8 @@ struct LiveBusMapView: View {
 }
 
 #Preview(traits: .sampleData) {
-    let foliData = FoliDataClass()
-    LiveBusMapView(foliData: FoliDataClass(), selectedStopCode: "1", trip: TripData(trip: GtfsTrip()), vehicleStops: [StopData(gtfsStop: GtfsStop())], shape: ShapeData(shapeID: "434", shapes: [GtfsShape()]), mapCameraPosition: .region(foliData.fallbackLocation), vehicle: VehicleData(vehicleKey: "80051", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+    let sampleVehicle = VehicleData(vehicleKey: "80051", vehicleData: SiriVehicleMonitoring.Result.Vehicle())
+    let sampleStop = StopData(gtfsStop: GtfsStop())
+    
+    LiveBusMapView(foliData: FoliDataClass(), selectedStopCode: "1", trip: TripData(trip: GtfsTrip()), vehicle: sampleVehicle, vehicleStops: [sampleStop], shape: ShapeData(shapeID: "434", shapes: [GtfsShape()]), mapCameraPosition: .camera(.init(centerCoordinate: sampleVehicle.coords, distance: 2000)))
 }

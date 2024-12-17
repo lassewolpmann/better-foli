@@ -11,9 +11,9 @@ import SwiftData
 
 struct OverviewActualMapView: View {
     @Query var allStops: [StopData]
-    
     @State private var selectedStop: StopData?
-    
+    @State private var annotationSize: Double = 0.0
+
     let foliData: FoliDataClass
     let cameraRegion: MKCoordinateRegion
 
@@ -45,10 +45,32 @@ struct OverviewActualMapView: View {
             UserAnnotation()
             
             ForEach(allStops, id: \.code) { stop in
-                Marker(stop.name, systemImage: stop.isFavourite ? "star.fill" : "bus", coordinate: stop.coords)
-                    .tint(.orange)
-                    .tag(stop)
+                Annotation(coordinate: stop.coords) {
+                    Circle()
+                        .fill(.orange)
+                        .stroke(.orange, lineWidth: 1)
+                        .frame(height: annotationSize)
+                        .shadow(radius: 2)
+                } label: {
+                    Text(stop.name)
+                }
+                .tag(stop)
             }
+        }
+        .onMapCameraChange(frequency: .continuous) { context in
+            let region = context.region
+            let maxLat = region.center.latitude + (region.span.latitudeDelta / 2)
+            let minLat = region.center.latitude - (region.span.latitudeDelta / 2)
+            let maxLoc = CLLocation(latitude: maxLat, longitude: region.center.longitude)
+            let minLoc = CLLocation(latitude: minLat, longitude: region.center.longitude)
+            let distance = maxLoc.distance(from: minLoc)
+            
+            let minimumSize: Double = 10
+            
+            let sizeInMeters: Double = 10
+            let size = (sizeInMeters * 1000) / distance
+            
+            annotationSize = size < minimumSize ? minimumSize : size
         }
         .mapStyle(.standard(pointsOfInterest: .excludingAll, showsTraffic: true))
         .mapControls {

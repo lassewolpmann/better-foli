@@ -28,6 +28,6 @@ struct OverviewMapView: View {
     }
 }
 
-#Preview {
+#Preview(traits: .sampleData) {
     OverviewMapView(foliData: FoliDataClass(), locationManager: LocationManagerClass())
 }
