@@ -14,6 +14,9 @@ struct FavouritesView: View {
     @Query(filter: #Predicate<StopData> { $0.isFavourite }, sort: \.code) var favouriteStops: [StopData]
     @Query(filter: #Predicate<RouteData> { $0.isFavourite }, sort: \.shortName) var favouriteRoutes: [RouteData]
     
+    @State var editMode: EditMode = .inactive
+    @State var tempLabelText: String = ""
+    
     let foliData: FoliDataClass
     
     var body: some View {
@@ -34,14 +37,14 @@ struct FavouritesView: View {
                 
                 Section {
                     ForEach(favouriteRoutes, id: \.routeID) { route in
-                        NavigationLink {
-                            RouteOverviewView(foliData: foliData, route: route)
-                        } label: {
-                            Label {
-                                Text(route.longName)
-                            } icon: {
-                                Text(route.shortName)
+                        if (editMode == .inactive) {
+                            NavigationLink {
+                                RouteOverviewView(foliData: foliData, route: route)
+                            } label: {
+                                FavouriteLineLabel(route: route, editMode: editMode)
                             }
+                        } else if (editMode == .active) {
+                            FavouriteLineLabel(route: route, editMode: editMode)
                         }
                     }
                     .onDelete(perform: deleteFavouriteLine)
@@ -50,8 +53,15 @@ struct FavouritesView: View {
                 }
             }
             .toolbar {
-                EditButton()
+                // EditButton()
+                Button {
+                    editMode = editMode == .active ? .inactive : .active
+                } label: {
+                    Text("Edit")
+                }
             }
+            .animation(.easeInOut(duration: 0.1), value: editMode)
+            .environment(\.editMode, $editMode)
             .navigationTitle("Favourites")
         }
     }

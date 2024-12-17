@@ -37,6 +37,7 @@ struct SampleData: PreviewModifier {
         for stop in stops {
             let stop = StopData(gtfsStop: stop)
             stop.isFavourite = true
+            stop.customLabel = "Custom Label"
             container.mainContext.insert(stop)
         }
         
@@ -46,7 +47,12 @@ struct SampleData: PreviewModifier {
         let sampleShape = ShapeData(shapeID: "434", shapes: shapes)
         container.mainContext.insert(sampleShape)
         
-        let sampleRoute = RouteData(route: GtfsRoute(route_id: "1", route_short_name: "1", route_long_name: "Lentoasema-Satama"))
+        var sampleRoute = RouteData(route: GtfsRoute(route_id: "1", route_short_name: "1", route_long_name: "Lentoasema-Satama"))
+        sampleRoute.isFavourite = true
+        sampleRoute.customLabel = "Custom Label"
+        container.mainContext.insert(sampleRoute)
+        
+        sampleRoute = RouteData(route: GtfsRoute(route_id: "2", route_short_name: "2", route_long_name: "Kohmo-L\u{00e4}nsinummi"))
         sampleRoute.isFavourite = true
         container.mainContext.insert(sampleRoute)
         

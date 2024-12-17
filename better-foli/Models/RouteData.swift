@@ -15,6 +15,7 @@ class RouteData {
     var longName: String
     
     var isFavourite: Bool = false
+    var customLabel: String = ""
     
     init(route: GtfsRoute) {
         self.routeID = route.route_id
