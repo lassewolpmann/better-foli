@@ -9,15 +9,17 @@ import SwiftUI
 import SwiftData
 import MapKit
 
-struct RouteOverviewView: View {
+struct BusLineView: View {
     @Query var tripsOnRoute: [TripData]
     @State private var busesOnThisRoute: [VehicleData]?
     
     let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     let route: RouteData
     
-    init(foliData: FoliDataClass, route: RouteData) {
+    init(foliData: FoliDataClass, locationManager: LocationManagerClass, route: RouteData) {
         self.foliData = foliData
+        self.locationManager = locationManager
         self.route = route
         
         let routeID = route.routeID
@@ -30,13 +32,23 @@ struct RouteOverviewView: View {
         if let busesOnThisRoute {
             List {
                 Section {
-                    ForEach(busesOnThisRoute, id: \.vehicleID) { vehicle in
+                    ForEach(busesOnThisRoute.sorted {
+                        if (!locationManager.isAuthorized) { return true }
+                        guard let userLocation = locationManager.manager.location else { return true }
+                        
+                        let distanceA = userLocation.distance(from: CLLocation(latitude: $0.latitude, longitude: $0.longitude))
+                        let distanceB = userLocation.distance(from: CLLocation(latitude: $1.latitude, longitude: $1.longitude))
+                        
+                        return distanceA < distanceB
+                    }, id: \.vehicleID) { vehicle in
                         if let trip = tripsOnRoute.first(where: { $0.tripID == vehicle.tripID }) {
-                            RouteOverviewBusRow(foliData: foliData, trip: trip, route: route, vehicle: vehicle)
+                            BusOnLineView(foliData: foliData, trip: trip, route: route, vehicle: vehicle)
                         }
                     }
                 } header: {
                     Text("Active Buses on this Line")
+                } footer: {
+                    Text("Buses are sorted by distance to your current location.")
                 }
             }
             .toolbar {
@@ -45,6 +57,7 @@ struct RouteOverviewView: View {
                 } label: {
                     Image(systemName: route.isFavourite ? "star.fill": "star")
                 }
+                .sensoryFeedback(.success, trigger: route.isFavourite)
             }
         } else {
             ProgressView("Loading buses on this route...")
@@ -62,5 +75,5 @@ struct RouteOverviewView: View {
 }
 
 #Preview(traits: .sampleData) {
-    RouteOverviewView(foliData: FoliDataClass(), route: RouteData(route: GtfsRoute()))
+    BusLineView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), route: RouteData(route: GtfsRoute()))
 }

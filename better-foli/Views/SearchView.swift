@@ -15,6 +15,7 @@ enum SearchOption: String, CaseIterable {
 
 struct SearchView: View {
     let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     
     @State var searchOption: SearchOption = .busStop
     @State var searchText = ""
@@ -35,7 +36,7 @@ struct SearchView: View {
                 if (searchOption == .busStop) {
                     FoundStopsView(foliData: foliData, searchText: searchText)
                 } else if (searchOption == .busLine) {
-                    FoundLinesView(foliData: foliData, searchText: searchText)
+                    FoundLinesView(foliData: foliData, locationManager: locationManager, searchText: searchText)
                 }
             }
             .navigationTitle("Search \(searchOption.rawValue)")
@@ -54,5 +55,5 @@ struct SearchView: View {
 }
 
 #Preview(traits: .sampleData) {
-    SearchView(foliData: FoliDataClass())
+    SearchView(foliData: FoliDataClass(), locationManager: LocationManagerClass())
 }

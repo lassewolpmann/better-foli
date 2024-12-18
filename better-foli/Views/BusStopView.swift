@@ -8,11 +8,11 @@
 import SwiftUI
 import SwiftData
 
-struct StopView: View {
+struct BusStopView: View {
+    @State private var upcomingBuses: [VehicleData]?
+
     let foliData: FoliDataClass
     let stop: StopData
-    
-    @State private var upcomingBuses: [VehicleData]?
     
     var body: some View {
         if let upcomingBuses {
@@ -43,12 +43,9 @@ struct StopView: View {
                     Button {
                         stop.isFavourite.toggle()
                     } label: {
-                        Label {
-                            Text("Save to Favourites")
-                        } icon: {
-                            Image(systemName: stop.isFavourite ? "star.fill" : "star")
-                        }
+                        Image(systemName: stop.isFavourite ? "star.fill" : "star")
                     }
+                    .sensoryFeedback(.success, trigger: stop.isFavourite)
                 }
             }
         } else {
@@ -65,5 +62,5 @@ struct StopView: View {
 }
 
 #Preview(traits: .sampleData) {
-    StopView(foliData: FoliDataClass(), stop: StopData(gtfsStop: GtfsStop()))
+    BusStopView(foliData: FoliDataClass(), stop: StopData(gtfsStop: GtfsStop()))
 }

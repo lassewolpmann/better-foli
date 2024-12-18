@@ -18,16 +18,21 @@ struct FavouritesView: View {
     @State var tempLabelText: String = ""
     
     let foliData: FoliDataClass
-    
+    let locationManager: LocationManagerClass
+
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     ForEach(favouriteStops, id: \.code) { stop in
-                        NavigationLink {
-                            StopView(foliData: foliData, stop: stop)
-                        } label: {
-                            StopListPreviewView(stop: stop)
+                        if (editMode == .inactive) {
+                            NavigationLink {
+                                BusStopView(foliData: foliData, stop: stop)
+                            } label: {
+                                BusStopLabel(customLabelText: stop.customLabel, stop: stop, editMode: editMode)
+                            }
+                        } else if (editMode == .active) {
+                            BusStopLabel(customLabelText: stop.customLabel, stop: stop, editMode: editMode)
                         }
                     }
                     .onDelete(perform: deleteFavouriteStop)
@@ -39,12 +44,12 @@ struct FavouritesView: View {
                     ForEach(favouriteRoutes, id: \.routeID) { route in
                         if (editMode == .inactive) {
                             NavigationLink {
-                                RouteOverviewView(foliData: foliData, route: route)
+                                BusLineView(foliData: foliData, locationManager: locationManager, route: route)
                             } label: {
-                                FavouriteLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
+                                BusLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
                             }
                         } else if (editMode == .active) {
-                            FavouriteLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
+                            BusLineLabel(customLabelText: route.customLabel, route: route, editMode: editMode)
                         }
                     }
                     .onDelete(perform: deleteFavouriteLine)
@@ -79,5 +84,5 @@ struct FavouritesView: View {
 }
 
 #Preview(traits: .sampleData) {
-    FavouritesView(foliData: FoliDataClass())
+    FavouritesView(foliData: FoliDataClass(), locationManager: LocationManagerClass())
 }

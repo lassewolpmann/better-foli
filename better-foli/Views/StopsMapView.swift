@@ -78,7 +78,7 @@ struct StopsMapView: View {
             MapCompass()
         }
         .sheet(item: $selectedStop) { stop in
-            StopView(foliData: foliData, stop: stop)
+            BusStopView(foliData: foliData, stop: stop)
         }
     }
 }

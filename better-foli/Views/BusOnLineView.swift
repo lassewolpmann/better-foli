@@ -8,7 +8,7 @@
 import SwiftUI
 import MapKit
 
-struct RouteOverviewBusRow: View {
+struct BusOnLineView: View {
     let foliData: FoliDataClass
     let trip: TripData
     let route: RouteData
@@ -43,7 +43,7 @@ struct RouteOverviewBusRow: View {
 #Preview {
     NavigationStack {
         List {
-            RouteOverviewBusRow(foliData: FoliDataClass(), trip: TripData(trip: GtfsTrip()), route: RouteData(route: GtfsRoute()), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
+            BusOnLineView(foliData: FoliDataClass(), trip: TripData(trip: GtfsTrip()), route: RouteData(route: GtfsRoute()), vehicle: VehicleData(vehicleKey: "", vehicleData: SiriVehicleMonitoring.Result.Vehicle()))
         }
     }
 }

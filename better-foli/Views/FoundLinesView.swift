@@ -12,10 +12,12 @@ struct FoundLinesView: View {
     @Query var foundLines: [RouteData]
 
     let foliData: FoliDataClass
+    let locationManager: LocationManagerClass
     let searchText: String
     
-    init(foliData: FoliDataClass, searchText: String) {
+    init(foliData: FoliDataClass, locationManager: LocationManagerClass, searchText: String) {
         self.foliData = foliData
+        self.locationManager = locationManager
         self.searchText = searchText
         
         let predicate = #Predicate<RouteData> { route in
@@ -28,13 +30,9 @@ struct FoundLinesView: View {
     var body: some View {
         ForEach(foundLines, id: \.routeID) { route in
             NavigationLink {
-                RouteOverviewView(foliData: foliData, route: route)
+                BusLineView(foliData: foliData, locationManager: locationManager, route: route)
             } label: {
-                Label {
-                    Text(route.longName)
-                } icon: {
-                    Text(route.shortName)
-                }
+                BusLineLabel(customLabelText: route.customLabel, route: route, editMode: .inactive)
             }
         }
     }
@@ -43,7 +41,7 @@ struct FoundLinesView: View {
 #Preview(traits: .sampleData) {
     NavigationStack {
         List {
-            FoundLinesView(foliData: FoliDataClass(), searchText: "Satama")
+            FoundLinesView(foliData: FoliDataClass(), locationManager: LocationManagerClass(), searchText: "Satama")
         }
         .navigationTitle("Search")
     }
