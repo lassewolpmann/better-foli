@@ -10,7 +10,7 @@ import CoreLocation
 import SwiftData
 
 @Model
-class StopData {
+final class StopData {
     #Index<StopData>([\.latitude], [\.longitude], [\.name], [\.code], [\.name, \.code])
 
     @Attribute(.unique) var code: String

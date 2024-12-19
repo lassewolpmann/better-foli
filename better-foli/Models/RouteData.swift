@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-class RouteData {
+final class RouteData {
     @Attribute(.unique) var routeID: String
     var shortName: String
     var longName: String

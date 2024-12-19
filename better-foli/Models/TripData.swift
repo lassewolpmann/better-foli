@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-class TripData {
+final class TripData {
     @Attribute(.unique) var tripID: String
     var shapeID: String
     var routeID: String

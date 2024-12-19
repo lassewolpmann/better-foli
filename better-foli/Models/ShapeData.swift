@@ -19,7 +19,7 @@ struct ShapeLocation: Codable {
 }
 
 @Model
-class ShapeData {
+final class ShapeData {
     #Index<ShapeData>([\.shapeID])
     @Attribute(.unique) var shapeID: String
     var locations: [ShapeLocation]
